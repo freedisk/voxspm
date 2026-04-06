@@ -19,8 +19,8 @@
 
 | Couche | Technologie | Version |
 |--------|------------|---------|
-| Frontend | Next.js (App Router) | 14.x |
-| Styling | Tailwind CSS | 3.x |
+| Frontend | Next.js (App Router) | 16.x |
+| Styling | Tailwind CSS (v4, CSS-based config) | 4.x |
 | Backend/DB | Supabase (PostgreSQL) | JS v2 |
 | Auth | Supabase Auth (anonymous + email) | — |
 | Realtime | Supabase Realtime | — |
@@ -35,58 +35,65 @@
 
 ```
 voxspm/
-├── app/
-│   ├── layout.tsx              # RootLayout — providers, géo-modal
-│   ├── page.tsx                # / → liste sondages actifs
-│   ├── poll/
-│   │   └── [slug]/
-│   │       └── page.tsx        # /poll/[slug] → détail sondage + vote
-│   ├── proposer/
-│   │   └── page.tsx            # /proposer → formulaire proposition
-│   └── admin/
-│       ├── layout.tsx          # AdminLayout — auth guard middleware
-│       ├── page.tsx            # /admin → dashboard
-│       ├── polls/
-│       │   └── [id]/
-│       │       └── page.tsx    # /admin/polls/[id] → édition sondage
-│       └── tags/
-│           └── page.tsx        # /admin/tags → gestion tags
-├── components/
-│   ├── ui/                     # Composants atomiques
-│   │   ├── Button.tsx
-│   │   ├── Badge.tsx
-│   │   ├── ProgressBar.tsx
-│   │   └── Modal.tsx
-│   ├── polls/                  # Composants métier
-│   │   ├── PollCard.tsx        # Card sondage (liste)
-│   │   ├── PollDetail.tsx      # Vue complète (vote + résultats)
-│   │   ├── VoteForm.tsx        # Radio buttons + bouton vote
-│   │   ├── ResultsBars.tsx     # Barres résultats par option
-│   │   ├── GeoBreakdown.tsx    # Répartition SP / Miq / Ext
-│   │   └── TagFilter.tsx       # Barre filtre horizontal tags
-│   ├── layout/
-│   │   ├── Header.tsx
-│   │   └── GeoModal.tsx        # Modal 1ère visite — choix localisation
-│   └── admin/
-│       ├── PollsTable.tsx
-│       ├── StatsCards.tsx
-│       └── TagsManager.tsx
-├── lib/
-│   ├── supabase/
-│   │   ├── client.ts           # createBrowserClient()
-│   │   ├── server.ts           # createServerClient() — SSR
-│   │   └── middleware.ts       # updateSession() pour auth
-│   ├── hooks/
-│   │   ├── useVote.ts          # Logique vote + anti-doublon
-│   │   ├── useGeoLocation.ts   # Lecture/écriture localisation session
-│   │   └── useRealtimeVotes.ts # Subscription Supabase Realtime
-│   ├── actions/
-│   │   ├── polls.ts            # Server Actions : vote, proposition
-│   │   └── admin.ts            # Server Actions : valider, archiver, supprimer
-│   └── utils/
-│       ├── slugify.ts
-│       └── formatDate.ts
-├── middleware.ts                # Protection route /admin
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx              # RootLayout — Google Fonts, Providers
+│   │   ├── globals.css             # Tailwind v4 @theme, CSS variables, animations
+│   │   ├── page.tsx                # / → Hero + liste sondages actifs + FAB mobile
+│   │   ├── poll/
+│   │   │   └── [slug]/
+│   │   │       └── page.tsx        # /poll/[slug] → détail sondage + vote
+│   │   ├── proposer/
+│   │   │   └── page.tsx            # /proposer → formulaire proposition
+│   │   └── admin/
+│   │       ├── layout.tsx          # AdminLayout — auth guard + AdminShell
+│   │       ├── login/
+│   │       │   └── page.tsx        # /admin/login → formulaire email/password
+│   │       ├── page.tsx            # /admin → dashboard stats + table sondages
+│   │       ├── polls/
+│   │       │   └── [id]/
+│   │       │   └── page.tsx        # /admin/polls/[id] → édition sondage
+│   │       └── tags/
+│   │           └── page.tsx        # /admin/tags → gestion tags
+│   ├── components/
+│   │   ├── ui/                     # Composants atomiques
+│   │   │   ├── Button.tsx          # 4 variantes, loading, min-h 44px
+│   │   │   ├── Badge.tsx           # Pill coloré pour tags
+│   │   │   ├── ProgressBar.tsx     # Barre animée avec leader highlight
+│   │   │   └── Modal.tsx           # <dialog> natif, backdrop blur
+│   │   ├── polls/                  # Composants métier
+│   │   │   ├── PollCard.tsx        # Card sondage (hover lift, accent line)
+│   │   │   ├── VoteForm.tsx        # Radio custom 18px + bouton vote
+│   │   │   ├── ResultsBars.tsx     # Barres résultats (leader 8px, ranked colors)
+│   │   │   ├── GeoBreakdown.tsx    # Répartition SP/Miq/Ext (compact + full)
+│   │   │   └── TagFilter.tsx       # Pills scrollables, multi-select URL
+│   │   ├── pages/                  # Wrappers client pour les pages SSR
+│   │   │   ├── HomeClient.tsx      # TagFilter interactif + router.replace
+│   │   │   └── PollDetailClient.tsx # Vote + Realtime + GeoModal
+│   │   ├── layout/
+│   │   │   ├── Header.tsx          # Glassmorphism, logo dégradé, pill géo
+│   │   │   ├── Hero.tsx            # Hero section avec stats, eyebrow, gradient
+│   │   │   ├── GeoModal.tsx        # 3 choix localisation + "Plus tard"
+│   │   │   └── Providers.tsx       # Auth anonyme + GeoModal auto
+│   │   └── admin/
+│   │       ├── AdminShell.tsx      # Nav admin + déconnexion
+│   │       ├── PollsTable.tsx      # Table filtrable + actions contextuelles
+│   │       ├── PollEditor.tsx      # Édition sondage complet
+│   │       ├── StatsCards.tsx      # 4 métriques + GeoBreakdown global
+│   │       └── TagsManager.tsx     # CRUD inline + slug auto
+│   ├── lib/
+│   │   ├── supabase/
+│   │   │   ├── client.ts           # createBrowserClient()
+│   │   │   ├── server.ts           # createServerClient() — SSR
+│   │   │   └── middleware.ts       # updateSession() + auth admin + x-pathname
+│   │   ├── hooks/
+│   │   │   ├── useVote.ts          # Vérifie vote existant (RLS)
+│   │   │   ├── useGeoLocation.ts   # Lit/écrit profiles.location
+│   │   │   └── useRealtimeVotes.ts # Subscriptions Realtime (ref stable)
+│   │   └── actions/
+│   │       ├── polls.ts            # vote, proposePoll, updateUserLocation
+│   │       └── admin.ts            # validate/archive/reactivate/delete/updatePoll + CRUD tags
+│   └── middleware.ts               # /admin/login bypass + admin guard
 ├── supabase/
 │   ├── migrations/             # Migrations SQL versionnées
 │   │   ├── 001_schema.sql
@@ -400,54 +407,51 @@ vercel env pull .env.local           # Sync variables depuis Vercel
 
 ---
 
-## 8. DESIGN SYSTEM — TOKENS
+## 8. DESIGN SYSTEM — Apple Civic Light
 
-```typescript
-// tailwind.config.ts — couleurs VoxSPM
-const colors = {
-  // Palette SPM — océan, archipel, brume
-  ocean: {
-    DEFAULT: '#1B7FC4',
-    light:   '#45A8E8',
-    dark:    '#0F5A8E',
-  },
-  miq: {   // Miquelon — vert brume
-    DEFAULT: '#10A585',
-    light:   '#2DD4BF',
-  },
-  ext: {   // Extérieur — violet lointain
-    DEFAULT: '#7B5EA7',
-    light:   '#A78BFA',
-  },
-  rock: '#4B5F7C',    // ardoise
-  slate: '#2A3F5C',
-  // Surfaces (dark theme app)
-  surface: {
-    base:  '#08111F',
-    1:     '#0F1E35',
-    2:     '#162540',
-    3:     '#1E2F50',
-  },
-  // Sémantiques
-  success: '#1CA87A',
-  warning: '#E8A020',
-  danger:  '#D94F4F',
-}
+**Theme** : light, minimaliste, Apple-style. Défini dans `globals.css` via CSS variables + `@theme inline`.
+
+**Typographie** :
+- Titres : `Instrument Serif` (italic pour les accents) — chargé via `<link>` dans layout.tsx
+- Corps : `DM Sans` (300/400/500/600)
+
+```css
+/* Palette — globals.css :root */
+--white: #FFFFFF;
+--off-white: #F5F7FA;        /* fond app */
+--surface: #FFFFFF;           /* cards */
+--surface-2: #F2F4F8;
+--surface-3: #E8ECF2;
+--text-primary: #0A1628;
+--text-secondary: #3D506A;
+--text-muted: #8A9BB0;
+--border: rgba(0,0,0,0.07);
+--border-strong: rgba(0,0,0,0.12);
+--ocean: #1A6FB5;             /* accent principal */
+--ocean-light: #2E8ED4;
+--ocean-glow: rgba(26,111,181,0.12);
+--miq: #0C9A78;               /* Miquelon */
+--ext: #6B4FA0;               /* Extérieur */
+--success: #1CA87A;
+--warning: #E8A020;
+--danger: #D94F4F;
 ```
 
-**Règles de couleur :**
-- Bleu océan `#1B7FC4` → accent principal, CTAs, liens
-- Vert Miquelon `#10A585` → statut actif, succès, confirmations
-- Violet `#7B5EA7` → badge "Extérieur" uniquement
-- Orange `#E8A020` → avertissements, sondages en attente (admin)
-- Rouge `#D94F4F` → erreurs, suppressions
+**Ombres** : `--shadow-sm` / `--shadow-md` / `--shadow-lg` / `--shadow-xl`
+**Rayons** : `--radius: 16px` / `--radius-sm: 10px` / `--radius-lg: 24px` / `--radius-pill: 100px`
 
 **Géo-couleurs (non interchangeables) :**
 ```
-Saint-Pierre → #1B7FC4 (ocean)
-Miquelon     → #10A585 (miq)
-Extérieur    → #7B5EA7 (ext)
+Saint-Pierre → #1A6FB5 (ocean)
+Miquelon     → #0C9A78 (miq)
+Extérieur    → #6B4FA0 (ext)
 ```
+
+**Notes design** :
+- PollCard : hover lift -3px + accent line dégradé ocean→miq (CSS class `.poll-card-hover`)
+- ResultsBars : leader 8px ocean, 2nd #93C5E8, reste #CBD5E1
+- Header : glassmorphism `blur(20px) saturate(180%)`
+- Pas de `tailwind.config.ts` — Tailwind v4 utilise `@theme inline` dans CSS
 
 ---
 
