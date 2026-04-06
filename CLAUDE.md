@@ -60,9 +60,9 @@ voxspm/
 │   │   │   ├── Button.tsx          # 4 variantes, loading, min-h 44px
 │   │   │   ├── Badge.tsx           # Pill coloré pour tags
 │   │   │   ├── ProgressBar.tsx     # Barre animée avec leader highlight
-│   │   │   └── Modal.tsx           # <dialog> natif, backdrop blur
+│   │   │   └── Modal.tsx           # div overlay fixed inset-0, Escape, body lock
 │   │   ├── polls/                  # Composants métier
-│   │   │   ├── PollCard.tsx        # Card sondage (hover lift, accent line)
+│   │   │   ├── PollCard.tsx        # Card pleine largeur: tags + serif + barres + geo mini + CTA
 │   │   │   ├── VoteForm.tsx        # Radio custom 18px + bouton vote
 │   │   │   ├── ResultsBars.tsx     # Barres résultats (leader 8px, ranked colors)
 │   │   │   ├── GeoBreakdown.tsx    # Répartition SP/Miq/Ext (compact + full)
@@ -71,14 +71,15 @@ voxspm/
 │   │   │   ├── HomeClient.tsx      # TagFilter interactif + router.replace
 │   │   │   └── PollDetailClient.tsx # Vote + Realtime + GeoModal
 │   │   ├── layout/
-│   │   │   ├── Header.tsx          # Glassmorphism, logo dégradé, pill géo
+│   │   │   ├── Header.tsx          # Glassmorphism, logo dégradé, pill géo (useGeo())
 │   │   │   ├── Hero.tsx            # Hero section avec stats, eyebrow, gradient
-│   │   │   ├── GeoModal.tsx        # 3 choix localisation + "Plus tard"
-│   │   │   └── Providers.tsx       # Auth anonyme + GeoModal auto
+│   │   │   ├── GeoModal.tsx        # 3 choix localisation, useGeo() → updateAndPersistLocation()
+│   │   │   ├── Footer.tsx          # Footer sombre #0A1628, liens, copyright
+│   │   │   └── Providers.tsx       # GeoProvider + auth anonyme + GeoModal auto
 │   │   └── admin/
 │   │       ├── AdminShell.tsx      # Nav admin + déconnexion
 │   │       ├── PollsTable.tsx      # Table filtrable + actions contextuelles
-│   │       ├── PollEditor.tsx      # Édition sondage complet
+│   │       ├── PollEditor.tsx      # Édition sondage — mode éditable vs lecture (isEditable)
 │   │       ├── StatsCards.tsx      # 4 métriques + GeoBreakdown global
 │   │       └── TagsManager.tsx     # CRUD inline + slug auto
 │   ├── lib/
@@ -86,13 +87,15 @@ voxspm/
 │   │   │   ├── client.ts           # createBrowserClient()
 │   │   │   ├── server.ts           # createServerClient() — SSR
 │   │   │   └── middleware.ts       # updateSession() + auth admin + x-pathname
+│   │   ├── context/
+│   │   │   └── GeoContext.tsx      # GeoProvider + useGeo() — source de vérité partagée
 │   │   ├── hooks/
 │   │   │   ├── useVote.ts          # Vérifie vote existant (RLS)
-│   │   │   ├── useGeoLocation.ts   # Lit/écrit profiles.location
-│   │   │   └── useRealtimeVotes.ts # Subscriptions Realtime (ref stable)
+│   │   │   ├── useGeoLocation.ts   # Lit/écrit profiles.location (utilisé par useGeo)
+│   │   │   └── useRealtimeVotes.ts # Subscriptions Realtime (ref stable, pollId seul en dep)
 │   │   └── actions/
 │   │       ├── polls.ts            # vote, proposePoll, updateUserLocation
-│   │       └── admin.ts            # validate/archive/reactivate/delete/updatePoll + CRUD tags
+│   │       └── admin.ts            # validate/archive/reactivate/delete/updatePoll/getPollWithOptions/updatePollOptions + CRUD tags
 │   └── middleware.ts               # /admin/login bypass + admin guard
 ├── supabase/
 │   ├── migrations/             # Migrations SQL versionnées
@@ -518,9 +521,23 @@ Extérieur    → #6B4FA0 (ext)
 Trigger : profile.location === null (première visite ou session fraîche)
 Bloque l'interaction tant que non choisi
 3 options : Saint-Pierre | Miquelon | Je suis ailleurs
-Action : PATCH profiles SET location = ... WHERE id = auth.uid()
+Action : appelle updateAndPersistLocation() du GeoContext → DB + state partagé sync
 Stockage : dans le profil Supabase (persistant par browser via session anon)
 Fermable avec "Plus tard" → location reste null, modal réapparaît à la prochaine visite
+Utilise useGeo() — NE PAS utiliser useGeoLocation() directement
+```
+
+### `<PollCard />`
+```
+Props : slug, question, total_votes, proposed_at, proposer_name, tags, options, votes_sp, votes_miq, votes_ext
+Composant Server (pas de 'use client') — hover via CSS class .poll-card-hover
+Structure verticale :
+  1. Badges tags (Badge component)
+  2. Question Instrument Serif, texte complet (pas de troncature)
+  3. Barres résultats : pct = option.votes_count / total_votes, barre 8px #1A6FB5
+  4. Séparateur border-t
+  5. Geo breakdown mini : 3 barres 4px (SP=#1A6FB5, Miq=#0C9A78, Ext=#6B4FA0)
+  6. Ligne bas : meta + badge Live animé + CTA "Participer →" → /poll/[slug]
 ```
 
 ### `<VoteForm />`
@@ -583,6 +600,21 @@ Multi-select : ?tag=transport&tag=culture
 // 5. INSERT options (poll_id, text, order_index)
 // 6. INSERT poll_tags si tags sélectionnés
 // Return : { success: true }
+```
+
+### `getPollWithOptions(id)` — `/lib/actions/admin.ts`
+```typescript
+// Admin only — utilisé par /admin/polls/[id]
+// Retourne : { poll, options, selectedTagIds, isEditable }
+// isEditable = total_votes === 0 && status !== 'archived'
+// Si isEditable false → PollEditor s'affiche en lecture seule (bannière ambrée)
+```
+
+### `updatePollOptions(pollId, options)` — `/lib/actions/admin.ts`
+```typescript
+// Admin only — guard server-side : vérifie total_votes=0 avant modification
+// Supprime les options retirées, insère les nouvelles, met à jour les existantes
+// Ne jamais appeler si total_votes > 0 (guard côté client ET serveur)
 ```
 
 ### `validatePoll(pollId)` — `/lib/actions/admin.ts`
@@ -755,6 +787,12 @@ type ActionResult =
 4. **Les compteurs dénormalisés** (`total_votes`, `votes_count`, `votes_sp/miq/ext`) sont maintenus par les triggers DB — ne jamais les mettre à jour manuellement depuis le code Next.js.
 
 5. **Admin unique** : créé manuellement via Supabase Dashboard + SQL UPDATE profiles. Pas de formulaire d'inscription admin dans l'app.
+
+6. **GeoContext** : source de vérité partagée pour la localisation utilisateur. `GeoProvider` wrap toute l'app dans `Providers.tsx`. Utiliser `useGeo()` dans Header, GeoModal, PollDetailClient — **ne jamais** instancier `useGeoLocation()` directement dans ces composants (cause des états désynchronisés).
+
+7. **PollCard est un Server Component** — pas de `useState`/`useEffect`/event handlers JS. Les effets hover passent par la classe CSS `.poll-card-hover` définie dans `globals.css`.
+
+8. **PollEditor `isEditable`** : calculé côté serveur dans `getPollWithOptions()`. Un sondage est éditable uniquement si `total_votes === 0 && status !== 'archived'`. Ce flag détermine si PollEditor affiche le formulaire complet ou la vue lecture seule (bannière ambrée + champs non interactifs).
 
 6. **Géo-couleurs** : les 3 couleurs SP/Miq/Ext sont sémantiques et ne doivent pas être utilisées pour autre chose dans l'UI.
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback, type ReactNode } from 'react'
+import { useEffect, useCallback, type ReactNode } from 'react'
 
 interface ModalProps {
   isOpen: boolean
@@ -10,56 +10,49 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
+  // Fermeture via Escape
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose()
+  }, [onClose])
 
   useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-
-    if (isOpen && !dialog.open) {
-      dialog.showModal()
-    } else if (!isOpen && dialog.open) {
-      dialog.close()
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown)
+      // Empêcher le scroll du body quand la modal est ouverte
+      document.body.style.overflow = 'hidden'
     }
-  }, [isOpen])
-
-  const handleNativeClose = useCallback(() => {
-    if (isOpen) onClose()
-  }, [isOpen, onClose])
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    dialog.addEventListener('close', handleNativeClose)
-    return () => dialog.removeEventListener('close', handleNativeClose)
-  }, [handleNativeClose])
-
-  function handleBackdropClick(e: React.MouseEvent<HTMLDialogElement>) {
-    if (e.target === dialogRef.current) {
-      onClose()
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
     }
-  }
+  }, [isOpen, handleKeyDown])
+
+  if (!isOpen) return null
 
   return (
-    // 🎨 Intent: overlay sombre bleuté + backdrop-blur, carte blanche radius-lg
-    <dialog
-      ref={dialogRef}
-      onClick={handleBackdropClick}
-      className="max-w-[420px] w-[calc(100%-2rem)] p-0 border-0"
+    // 🎨 Intent: overlay fixed plein écran, centrage flexbox
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      onClick={onClose}
       style={{
-        background: 'var(--white)',
-        borderRadius: 'var(--radius-lg)',
-        boxShadow: 'var(--shadow-xl)',
+        background: 'rgba(10, 22, 40, 0.4)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
       }}
     >
-      <style>{`
-        dialog::backdrop {
-          background: rgba(10, 22, 40, 0.4);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-        }
-      `}</style>
-      {isOpen && (
+      {/* Modal centrée — stop propagation pour ne pas fermer au clic sur le contenu */}
+      <div
+        className="max-w-sm w-full mx-4 p-0"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        style={{
+          background: 'var(--white)',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-xl)',
+        }}
+      >
         <div className="p-6">
           <div className="flex items-center justify-between mb-5">
             <h2
@@ -82,7 +75,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
           </div>
           {children}
         </div>
-      )}
-    </dialog>
+      </div>
+    </div>
   )
 }

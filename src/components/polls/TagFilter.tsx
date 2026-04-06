@@ -18,17 +18,16 @@ export default function TagFilter({ tags, activeTagSlugs, onToggle }: TagFilterP
   const isAllActive = activeTagSlugs.length === 0
 
   return (
-    // 🎨 Intent: barre scrollable sans scrollbar, pills Apple-style
+    // 🎨 Intent: flex-wrap pour afficher tous les tags sans coupure
     <div
-      className="flex gap-2 overflow-x-auto pb-2"
+      className="flex flex-wrap gap-2"
       role="group"
       aria-label="Filtrer par thème"
-      style={{ scrollbarWidth: 'none' }}
     >
       <button
         onClick={() => onToggle('__all__')}
         className="
-          min-h-[44px] shrink-0 px-5 py-2 rounded-[var(--radius-pill)]
+          min-h-[44px] px-5 py-2 rounded-[var(--radius-pill)]
           text-sm font-medium border transition-all duration-200
         "
         style={isAllActive ? {
@@ -53,7 +52,7 @@ export default function TagFilter({ tags, activeTagSlugs, onToggle }: TagFilterP
             key={tag.id}
             onClick={() => onToggle(tag.slug)}
             className="
-              min-h-[44px] shrink-0 px-5 py-2 rounded-[var(--radius-pill)]
+              min-h-[44px] px-5 py-2 rounded-[var(--radius-pill)]
               text-sm font-medium border transition-all duration-200
               flex items-center gap-1.5
             "

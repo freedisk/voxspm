@@ -75,7 +75,7 @@ export default function PollDetailClient({
   const showVoteForm = !hasVoted && !justVoted && !voteLoading
 
   return (
-    <div className="max-w-[680px] mx-auto py-8 flex flex-col gap-6">
+    <div className="max-w-2xl mx-auto py-8 flex flex-col gap-6">
       {/* Tags */}
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">

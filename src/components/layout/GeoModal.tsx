@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
-import { useGeoLocation } from '@/lib/hooks/useGeoLocation'
+import { useGeo } from '@/lib/context/GeoContext'
 
 type UserLocation = 'saint_pierre' | 'miquelon' | 'exterieur'
 
@@ -24,14 +24,15 @@ interface GeoModalProps {
 }
 
 export default function GeoModal({ isOpen, onClose }: GeoModalProps) {
-  const { updateLocation } = useGeoLocation()
+  const { updateAndPersistLocation } = useGeo()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function handleSelect(location: UserLocation) {
     setIsSubmitting(true)
-    await updateLocation(location)
+    // Persiste en DB + sync le context immédiatement → Header se met à jour
+    const success = await updateAndPersistLocation(location)
     setIsSubmitting(false)
-    onClose()
+    if (success) onClose()
   }
 
   return (

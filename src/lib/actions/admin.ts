@@ -37,6 +37,117 @@ function isError(result: unknown): result is ActionResult {
   return typeof result === 'object' && result !== null && 'success' in result
 }
 
+// ─── Lecture sondage + options (admin) ──────────────────────────────────────
+
+export async function getPollWithOptions(pollId: string) {
+  const auth = await requireAdmin()
+  if (isError(auth)) return { success: false as const, error: 'NOT_ADMIN' }
+  const { supabase } = auth
+
+  const { data: poll, error: pollError } = await supabase
+    .from('polls')
+    .select(`
+      id, question, description, status, proposer_name, expires_at, total_votes,
+      options ( id, text, order_index, votes_count ),
+      poll_tags ( tag_id )
+    `)
+    .eq('id', pollId)
+    .single()
+
+  if (pollError || !poll) {
+    return { success: false as const, error: pollError?.message ?? 'Sondage introuvable' }
+  }
+
+  const options = (poll.options as { id: string; text: string; order_index: number; votes_count: number }[])
+    .sort((a, b) => a.order_index - b.order_index)
+
+  const selectedTagIds = (poll.poll_tags as { tag_id: string }[]).map((pt) => pt.tag_id)
+
+  // Règle métier : éditable seulement si aucun vote ET pas archivé
+  const isEditable = poll.total_votes === 0 && poll.status !== 'archived'
+
+  return {
+    success: true as const,
+    data: {
+      poll: {
+        id: poll.id,
+        question: poll.question,
+        description: poll.description,
+        status: poll.status as 'pending' | 'active' | 'archived',
+        proposer_name: poll.proposer_name,
+        expires_at: poll.expires_at,
+        total_votes: poll.total_votes as number,
+      },
+      options,
+      selectedTagIds,
+      isEditable,
+    },
+  }
+}
+
+// ─── Mise à jour options (upsert + delete supprimées) ──────────────────────
+
+export async function updatePollOptions(
+  pollId: string,
+  options: { id?: string; text: string; order_index: number }[]
+): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (isError(auth)) return auth
+  const { supabase } = auth
+
+  // Sécurité serveur : vérifier qu'aucun vote n'existe avant de modifier les options
+  const { data: pollCheck } = await supabase
+    .from('polls')
+    .select('total_votes, status')
+    .eq('id', pollId)
+    .single()
+
+  if (!pollCheck) return { success: false, error: 'Sondage introuvable' }
+  if (pollCheck.total_votes > 0 || pollCheck.status === 'archived') {
+    return { success: false, error: 'Ce sondage ne peut plus être modifié', code: 'NOT_EDITABLE' }
+  }
+
+  // Récupérer les options existantes pour identifier celles à supprimer
+  const { data: existingOptions } = await supabase
+    .from('options')
+    .select('id')
+    .eq('poll_id', pollId)
+
+  const existingIds = new Set((existingOptions ?? []).map((o) => o.id))
+  const keptIds = new Set(options.filter((o) => o.id).map((o) => o.id!))
+
+  // Supprimer les options qui ne sont plus dans la liste
+  const toDelete = [...existingIds].filter((id) => !keptIds.has(id))
+  if (toDelete.length > 0) {
+    const { error } = await supabase
+      .from('options')
+      .delete()
+      .in('id', toDelete)
+    if (error) return { success: false, error: error.message }
+  }
+
+  // Upsert les options existantes (mise à jour texte/ordre) et insérer les nouvelles
+  for (const opt of options) {
+    if (opt.id && existingIds.has(opt.id)) {
+      const { error } = await supabase
+        .from('options')
+        .update({ text: opt.text, order_index: opt.order_index })
+        .eq('id', opt.id)
+      if (error) return { success: false, error: error.message }
+    } else {
+      const { error } = await supabase
+        .from('options')
+        .insert({ poll_id: pollId, text: opt.text, order_index: opt.order_index })
+      if (error) return { success: false, error: error.message }
+    }
+  }
+
+  revalidatePath(`/admin/polls/${pollId}`)
+  revalidatePath('/admin')
+
+  return { success: true }
+}
+
 // ─── Gestion des sondages ──────────────────────────────────────────────────
 
 export async function validatePoll(pollId: string): Promise<ActionResult> {

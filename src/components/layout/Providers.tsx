@@ -2,13 +2,15 @@
 
 import { useEffect, useState, useCallback, type ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { GeoProvider, useGeo } from '@/lib/context/GeoContext'
 import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
 import GeoModal from '@/components/layout/GeoModal'
-import { useGeoLocation } from '@/lib/hooks/useGeoLocation'
 
-export default function Providers({ children }: { children: ReactNode }) {
+// Composant interne qui consomme le GeoContext — doit être enfant de GeoProvider
+function AppShell({ children }: { children: ReactNode }) {
   const [geoModalOpen, setGeoModalOpen] = useState(false)
-  const { location, isLoading } = useGeoLocation()
+  const { location, isLoading } = useGeo()
   const supabase = createClient()
 
   useEffect(() => {
@@ -21,6 +23,7 @@ export default function Providers({ children }: { children: ReactNode }) {
     initAuth()
   }, [supabase])
 
+  // Ouvrir automatiquement la GeoModal si location non définie (premier visiteur)
   useEffect(() => {
     if (!isLoading && location === null) {
       setGeoModalOpen(true)
@@ -34,10 +37,19 @@ export default function Providers({ children }: { children: ReactNode }) {
     <>
       <Header onOpenGeoModal={handleOpenGeoModal} />
       <GeoModal isOpen={geoModalOpen} onClose={handleCloseGeoModal} />
-      {/* 🎨 Intent: contenu principal centré max-width 960px, fond off-white */}
-      <main className="flex-1 w-full max-w-[960px] mx-auto px-5 pb-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         {children}
       </main>
+      <Footer />
     </>
+  )
+}
+
+// Provider racine — GeoProvider wraps AppShell pour que useGeo() soit disponible partout
+export default function Providers({ children }: { children: ReactNode }) {
+  return (
+    <GeoProvider>
+      <AppShell>{children}</AppShell>
+    </GeoProvider>
   )
 }

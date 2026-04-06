@@ -12,7 +12,14 @@ interface Tag {
   icon: string
 }
 
-interface PollWithTags {
+interface PollOption {
+  id: string
+  text: string
+  votes_count: number
+  order_index: number
+}
+
+interface PollWithData {
   id: string
   slug: string
   question: string
@@ -23,6 +30,7 @@ interface PollWithTags {
   votes_miq: number
   votes_ext: number
   tags: Tag[]
+  options: PollOption[]
 }
 
 export default async function HomePage({
@@ -45,12 +53,14 @@ export default async function HomePage({
       ? [rawTag]
       : []
 
+  // Enrichi : inclut options pour afficher les résultats dans PollCard
   const { data: rawPolls } = await supabase
     .from('polls')
     .select(`
       id, slug, question, total_votes, proposed_at, proposer_name,
       votes_sp, votes_miq, votes_ext,
-      poll_tags ( tag_id )
+      poll_tags ( tag_id ),
+      options ( id, text, votes_count, order_index )
     `)
     .eq('status', 'active')
     .order('proposed_at', { ascending: false })
@@ -58,11 +68,12 @@ export default async function HomePage({
 
   const tagMap = new Map((allTags ?? []).map((t) => [t.id, t]))
 
-  let polls: PollWithTags[] = (rawPolls ?? []).map((poll) => ({
+  let polls: PollWithData[] = (rawPolls ?? []).map((poll) => ({
     ...poll,
     tags: (poll.poll_tags as { tag_id: string }[])
       .map((pt) => tagMap.get(pt.tag_id))
       .filter((t): t is Tag => t !== undefined),
+    options: (poll.options as PollOption[]) ?? [],
   }))
 
   if (activeTagSlugs.length > 0) {
@@ -71,11 +82,9 @@ export default async function HomePage({
     )
   }
 
-  // Stats pour le Hero
   const totalVotes = polls.reduce((sum, p) => sum + p.total_votes, 0)
   const activePolls = polls.length
 
-  // Compteur sondages complétés (archivés) — requête séparée
   const { count: completedPolls } = await supabase
     .from('polls')
     .select('*', { count: 'exact', head: true })
@@ -83,14 +92,12 @@ export default async function HomePage({
 
   return (
     <div>
-      {/* 🎨 Intent: Hero plein-largeur au-dessus de la liste */}
       <Hero
         activePolls={activePolls}
         totalVotes={totalVotes}
         completedPolls={(completedPolls ?? 0) + activePolls}
       />
 
-      {/* 🎨 Intent: ancre pour le scroll depuis le bouton Hero */}
       <div id="sondages" className="pt-8">
         <HomeClient
           tags={allTags ?? []}
@@ -105,7 +112,8 @@ export default async function HomePage({
             Aucun sondage en cours — revenez bientôt !
           </p>
         ) : (
-          <div className="grid gap-4 mt-6 sm:grid-cols-2">
+          // 🎨 Intent: 1 colonne pleine largeur, max-w-3xl centré pour lisibilité
+          <div className="flex flex-col gap-6 mt-6 max-w-3xl mx-auto">
             {polls.map((poll) => (
               <PollCard
                 key={poll.id}
@@ -115,6 +123,7 @@ export default async function HomePage({
                 proposed_at={poll.proposed_at}
                 proposer_name={poll.proposer_name}
                 tags={poll.tags}
+                options={poll.options}
                 votes_sp={poll.votes_sp}
                 votes_miq={poll.votes_miq}
                 votes_ext={poll.votes_ext}
@@ -124,7 +133,7 @@ export default async function HomePage({
         )}
       </div>
 
-      {/* 🎨 Intent: FAB mobile — sticky bottom, pill sombre, visible md:hidden */}
+      {/* FAB mobile */}
       <Link
         href="/proposer"
         className="

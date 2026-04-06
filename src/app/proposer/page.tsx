@@ -125,7 +125,7 @@ export default function ProposerPage() {
   }
 
   return (
-    <div className="max-w-[680px] mx-auto py-8">
+    <div className="max-w-2xl mx-auto py-8">
       {/* 🎨 Intent: lien retour discret */}
       <Link
         href="/"

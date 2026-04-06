@@ -181,6 +181,14 @@ export default function PollsTable({ polls }: PollsTableProps) {
                   <td className="py-3 pr-4 text-muted hidden lg:table-cell">{date}</td>
                   <td className="py-3">
                     <div className="flex gap-1 flex-wrap">
+                      {/* Bouton éditer/consulter — présent sur TOUTES les lignes */}
+                      <button
+                        onClick={() => router.push(`/admin/polls/${poll.id}`)}
+                        className="text-xs px-2 py-1 rounded bg-ocean/20 text-ocean hover:bg-ocean/30 transition-colors"
+                        title={poll.total_votes === 0 && poll.status !== 'archived' ? 'Éditer' : 'Consulter'}
+                      >
+                        ✏️
+                      </button>
                       {poll.status === 'pending' && (
                         <>
                           <button
@@ -202,23 +210,14 @@ export default function PollsTable({ polls }: PollsTableProps) {
                         </>
                       )}
                       {poll.status === 'active' && (
-                        <>
-                          <button
-                            onClick={() => router.push(`/admin/polls/${poll.id}`)}
-                            className="text-xs px-2 py-1 rounded bg-ocean/20 text-ocean hover:bg-ocean/30 transition-colors"
-                            title="Éditer"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() => handleAction(() => archivePoll(poll.id), poll.id)}
-                            disabled={acting}
-                            className="text-xs px-2 py-1 rounded bg-rock/20 text-muted hover:bg-rock/30 transition-colors disabled:opacity-50"
-                            title="Archiver"
-                          >
-                            📦
-                          </button>
-                        </>
+                        <button
+                          onClick={() => handleAction(() => archivePoll(poll.id), poll.id)}
+                          disabled={acting}
+                          className="text-xs px-2 py-1 rounded bg-rock/20 text-muted hover:bg-rock/30 transition-colors disabled:opacity-50"
+                          title="Archiver"
+                        >
+                          📦
+                        </button>
                       )}
                       {poll.status === 'archived' && (
                         <>

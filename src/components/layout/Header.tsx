@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useGeoLocation } from '@/lib/hooks/useGeoLocation'
+import { useGeo } from '@/lib/context/GeoContext'
 
 const locationLabels: Record<string, { short: string; emoji: string }> = {
   saint_pierre: { short: 'Saint-Pierre', emoji: '🏝️' },
@@ -14,7 +14,7 @@ interface HeaderProps {
 }
 
 export default function Header({ onOpenGeoModal }: HeaderProps) {
-  const { location, isLoading } = useGeoLocation()
+  const { location, isLoading } = useGeo()
   const loc = location ? locationLabels[location] : null
 
   return (
@@ -28,7 +28,7 @@ export default function Header({ onOpenGeoModal }: HeaderProps) {
         borderColor: 'var(--border)',
       }}
     >
-      <div className="max-w-[960px] mx-auto px-5 h-[60px] flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[60px] flex items-center justify-between">
         {/* 🎨 Intent: logo icône dans carré dégradé + typo Instrument Serif */}
         <Link href="/" className="flex items-center gap-2.5 group">
           <div

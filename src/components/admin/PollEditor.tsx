@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
-import Badge from '@/components/ui/Badge'
-import { updatePoll } from '@/lib/actions/admin'
+import { updatePoll, updatePollOptions, validatePoll, archivePoll, deletePoll } from '@/lib/actions/admin'
 
 interface Tag {
   id: string
@@ -28,6 +27,7 @@ interface PollData {
   status: 'pending' | 'active' | 'archived'
   proposer_name: string | null
   expires_at: string | null
+  total_votes: number
 }
 
 interface PollEditorProps {
@@ -35,6 +35,19 @@ interface PollEditorProps {
   options: OptionData[]
   selectedTagIds: string[]
   allTags: Tag[]
+  isEditable: boolean
+}
+
+interface LocalOption {
+  id?: string
+  text: string
+  order_index: number
+}
+
+const statusLabels: Record<string, { label: string; color: string }> = {
+  active: { label: 'Actif', color: '#1CA87A' },
+  pending: { label: 'En attente', color: '#E8A020' },
+  archived: { label: 'Archivé', color: '#8A9BB0' },
 }
 
 export default function PollEditor({
@@ -42,27 +55,25 @@ export default function PollEditor({
   options: initialOptions,
   selectedTagIds: initialTagIds,
   allTags,
+  isEditable,
 }: PollEditorProps) {
   const router = useRouter()
   const [question, setQuestion] = useState(poll.question)
   const [proposerName, setProposerName] = useState(poll.proposer_name ?? '')
   const [status, setStatus] = useState(poll.status)
-  const [expiresAt, setExpiresAt] = useState(poll.expires_at ?? '')
   const [tagIds, setTagIds] = useState<string[]>(initialTagIds)
-  const [options, setOptions] = useState(initialOptions.map((o) => ({ text: o.text, order_index: o.order_index })))
+  const [options, setOptions] = useState<LocalOption[]>(
+    initialOptions.map((o) => ({ id: o.id, text: o.text, order_index: o.order_index }))
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  // On ne permet pas de modifier les options si le sondage a déjà des votes
-  // car les compteurs seraient incohérents
-  const hasVotes = initialOptions.some((o) => o.votes_count > 0)
+  const statusInfo = statusLabels[poll.status]
 
   function toggleTag(tagId: string) {
     setTagIds((prev) =>
-      prev.includes(tagId)
-        ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
     )
   }
 
@@ -88,164 +99,289 @@ export default function PollEditor({
     setSuccess(false)
     setIsSubmitting(true)
 
-    const result = await updatePoll(poll.id, {
+    const pollResult = await updatePoll(poll.id, {
       question,
       proposer_name: proposerName || null,
       status,
-      expires_at: expiresAt || null,
       tagIds,
-      // Ne mettre à jour les options que si le sondage n'a pas encore de votes
-      ...(!hasVotes ? { options } : {}),
     })
 
-    if (result.success) {
-      setSuccess(true)
-      router.refresh()
-    } else {
-      setError(result.error)
+    if (!pollResult.success) {
+      setError(pollResult.error)
+      setIsSubmitting(false)
+      return
     }
 
+    const optResult = await updatePollOptions(poll.id, options)
+    if (!optResult.success) {
+      setError(optResult.error)
+      setIsSubmitting(false)
+      return
+    }
+
+    setSuccess(true)
+    router.refresh()
     setIsSubmitting(false)
   }
 
+  async function handleQuickAction(action: () => Promise<{ success: boolean; error?: string }>) {
+    setIsSubmitting(true)
+    setError(null)
+    const result = await action()
+    if (!result.success && 'error' in result) {
+      setError(result.error ?? 'Erreur')
+    }
+    router.refresh()
+    setIsSubmitting(false)
+  }
+
+  const inputClass = `
+    w-full px-4 py-3 rounded-[var(--radius-sm)] text-sm min-h-[44px]
+    transition-all duration-200
+  `
+  const inputStyle = {
+    border: '1.5px solid var(--border-strong)',
+    color: 'var(--text-primary)',
+    background: 'var(--white)',
+  }
+  const readonlyStyle = {
+    ...inputStyle,
+    background: 'var(--surface-2)',
+    color: 'var(--text-secondary)',
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      {/* Question */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="question" className="text-sm font-medium text-muted">Question</label>
-        <textarea
-          id="question"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          rows={3}
-          maxLength={300}
-          className="w-full px-4 py-3 rounded-xl bg-surface-1 border border-rock/20 text-foreground text-sm focus:outline-none focus:border-ocean resize-none"
-        />
-      </div>
-
-      {/* Proposant */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="proposerName" className="text-sm font-medium text-muted">Proposant</label>
-        <input
-          id="proposerName"
-          type="text"
-          value={proposerName}
-          onChange={(e) => setProposerName(e.target.value)}
-          placeholder="Anonyme"
-          maxLength={50}
-          className="w-full px-4 py-3 rounded-xl bg-surface-1 border border-rock/20 text-foreground text-sm focus:outline-none focus:border-ocean min-h-[44px]"
-        />
-      </div>
-
-      {/* Statut */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="status" className="text-sm font-medium text-muted">Statut</label>
-        <select
-          id="status"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as 'pending' | 'active' | 'archived')}
-          className="w-full px-4 py-3 rounded-xl bg-surface-1 border border-rock/20 text-foreground text-sm focus:outline-none focus:border-ocean min-h-[44px]"
+    <div className="flex flex-col gap-6">
+      {/* En-tête : statut + votes */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <span
+          className="inline-block px-3 py-1 rounded-[var(--radius-pill)] text-xs font-medium"
+          style={{ backgroundColor: `${statusInfo.color}20`, color: statusInfo.color }}
         >
-          <option value="pending">En attente</option>
-          <option value="active">Actif</option>
-          <option value="archived">Archivé</option>
-        </select>
-      </div>
+          {statusInfo.label}
+        </span>
+        <span className="text-sm tabular-nums" style={{ color: 'var(--text-muted)' }}>
+          {poll.total_votes} vote{poll.total_votes > 1 ? 's' : ''}
+        </span>
 
-      {/* Expiration */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="expiresAt" className="text-sm font-medium text-muted">
-          Expiration (optionnel)
-        </label>
-        <input
-          id="expiresAt"
-          type="datetime-local"
-          value={expiresAt ? expiresAt.slice(0, 16) : ''}
-          onChange={(e) => setExpiresAt(e.target.value ? new Date(e.target.value).toISOString() : '')}
-          className="w-full px-4 py-3 rounded-xl bg-surface-1 border border-rock/20 text-foreground text-sm focus:outline-none focus:border-ocean min-h-[44px]"
-        />
-      </div>
-
-      {/* Tags */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-muted">Tags</label>
-        <div className="flex flex-wrap gap-2">
-          {allTags.map((tag) => {
-            const isSelected = tagIds.includes(tag.id)
-            return (
-              <button
-                key={tag.id}
-                type="button"
-                onClick={() => toggleTag(tag.id)}
-                className={`
-                  min-h-[44px] px-3 py-1.5 rounded-full text-sm border transition-colors
-                  ${isSelected
-                    ? 'text-white border-transparent'
-                    : 'bg-surface-2 text-muted border-rock/20 hover:border-ocean/40'
-                  }
-                `}
-                style={isSelected ? { backgroundColor: tag.color } : undefined}
-              >
-                {tag.icon} {tag.name}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Options */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-muted">
-          Options
-          {hasVotes && (
-            <span className="text-xs text-warning ml-2">(non modifiables — des votes existent)</span>
+        {/* Actions rapides */}
+        <div className="flex gap-2 ml-auto">
+          {poll.status === 'pending' && (
+            <Button
+              variant="primary"
+              onClick={() => handleQuickAction(() => validatePoll(poll.id))}
+              isLoading={isSubmitting}
+              className="text-xs"
+            >
+              ✅ Activer
+            </Button>
           )}
-        </label>
-        <div className="flex flex-col gap-2">
-          {options.map((option, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <input
-                type="text"
-                value={option.text}
-                onChange={(e) => updateOptionText(index, e.target.value)}
-                disabled={hasVotes}
-                maxLength={200}
-                className="flex-1 px-4 py-3 rounded-xl bg-surface-1 border border-rock/20 text-foreground text-sm focus:outline-none focus:border-ocean min-h-[44px] disabled:opacity-50"
-              />
-              {!hasVotes && options.length > 2 && (
-                <button
-                  type="button"
-                  onClick={() => removeOption(index)}
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted hover:text-danger rounded-lg hover:bg-surface-2 transition-colors"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-        {!hasVotes && options.length < 6 && (
-          <button
-            type="button"
-            onClick={addOption}
-            className="self-start mt-1 text-sm text-ocean hover:text-ocean-light transition-colors"
+          {poll.status === 'active' && (
+            <Button
+              variant="secondary"
+              onClick={() => handleQuickAction(() => archivePoll(poll.id))}
+              isLoading={isSubmitting}
+              className="text-xs"
+            >
+              📦 Archiver
+            </Button>
+          )}
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (confirm('Supprimer définitivement ce sondage et tous ses votes ?')) {
+                handleQuickAction(async () => {
+                  const r = await deletePoll(poll.id)
+                  if (r.success) router.push('/admin')
+                  return r
+                })
+              }
+            }}
+            isLoading={isSubmitting}
+            className="text-xs"
           >
-            + Ajouter une option
-          </button>
+            🗑️
+          </Button>
+        </div>
+      </div>
+
+      {/* Bandeau lecture seule */}
+      {!isEditable && (
+        <div
+          className="rounded-xl px-4 py-3 text-sm"
+          style={{
+            background: '#FFFBEB',
+            border: '1px solid #FDE68A',
+            color: '#92400E',
+          }}
+        >
+          Ce sondage a reçu des votes et ne peut plus être modifié.
+        </div>
+      )}
+
+      <form onSubmit={isEditable ? handleSubmit : (e) => e.preventDefault()} className="flex flex-col gap-6">
+        {/* Question */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+            Question
+          </label>
+          {isEditable ? (
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              rows={3}
+              maxLength={300}
+              className={`${inputClass} resize-none`}
+              style={inputStyle}
+            />
+          ) : (
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+              {poll.question}
+            </p>
+          )}
+        </div>
+
+        {/* Options de réponse */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+            Options de réponse
+          </label>
+          <div className="flex flex-col gap-2.5">
+            {(isEditable ? options : initialOptions).map((option, index) => (
+              <div key={'id' in option ? option.id : `new-${index}`} className="flex items-center gap-2">
+                <span className="text-xs font-medium w-6 text-center shrink-0" style={{ color: 'var(--text-muted)' }}>
+                  {index + 1}
+                </span>
+                {isEditable ? (
+                  <input
+                    type="text"
+                    value={option.text}
+                    onChange={(e) => updateOptionText(index, e.target.value)}
+                    placeholder={`Option ${index + 1}`}
+                    maxLength={200}
+                    className={`flex-1 ${inputClass}`}
+                    style={inputStyle}
+                  />
+                ) : (
+                  <div className={`flex-1 ${inputClass}`} style={readonlyStyle}>
+                    {option.text}
+                    {'votes_count' in option && (
+                      <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                        ({(option as OptionData).votes_count} votes)
+                      </span>
+                    )}
+                  </div>
+                )}
+                {isEditable && options.length > 2 && (
+                  <button
+                    type="button"
+                    onClick={() => removeOption(index)}
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[var(--radius-sm)] transition-colors duration-200"
+                    style={{ color: 'var(--danger)' }}
+                  >
+                    ❌
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          {isEditable && options.length < 6 && (
+            <button
+              type="button"
+              onClick={addOption}
+              className="self-start mt-1 text-sm font-medium transition-colors duration-200"
+              style={{ color: 'var(--ocean)' }}
+            >
+              + Ajouter une option
+            </button>
+          )}
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Tags</label>
+          <div className="flex flex-wrap gap-2">
+            {allTags.map((tag) => {
+              const isSelected = tagIds.includes(tag.id)
+              if (!isEditable && !isSelected) return null
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={isEditable ? () => toggleTag(tag.id) : undefined}
+                  disabled={!isEditable}
+                  className="min-h-[44px] px-4 py-2 rounded-[var(--radius-pill)] text-sm font-medium border transition-all duration-200 flex items-center gap-1.5 disabled:cursor-default"
+                  style={isSelected ? {
+                    background: tag.color,
+                    color: 'var(--white)',
+                    borderColor: tag.color,
+                  } : {
+                    background: 'var(--white)',
+                    color: 'var(--text-secondary)',
+                    borderColor: 'var(--border-strong)',
+                  }}
+                >
+                  <span>{tag.icon}</span>
+                  <span>{tag.name}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Statut */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Statut</label>
+          {isEditable ? (
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as 'pending' | 'active')}
+              className={inputClass}
+              style={inputStyle}
+            >
+              <option value="pending">En attente</option>
+              <option value="active">Actif</option>
+            </select>
+          ) : (
+            <span
+              className="inline-block px-3 py-1 rounded-[var(--radius-pill)] text-xs font-medium w-fit"
+              style={{ backgroundColor: `${statusInfo.color}20`, color: statusInfo.color }}
+            >
+              {statusInfo.label}
+            </span>
+          )}
+        </div>
+
+        {/* Proposant (éditable) */}
+        {isEditable && (
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Proposant</label>
+            <input
+              type="text"
+              value={proposerName}
+              onChange={(e) => setProposerName(e.target.value)}
+              placeholder="Anonyme"
+              maxLength={50}
+              className={inputClass}
+              style={inputStyle}
+            />
+          </div>
         )}
-      </div>
 
-      {error && <p className="text-sm text-danger">{error}</p>}
-      {success && <p className="text-sm text-success">Sondage mis à jour</p>}
+        {error && <p className="text-sm" style={{ color: 'var(--danger)' }}>{error}</p>}
+        {success && <p className="text-sm" style={{ color: 'var(--success)' }}>Sondage mis à jour</p>}
 
-      <div className="flex gap-3">
-        <Button type="submit" isLoading={isSubmitting}>
-          Sauvegarder
-        </Button>
-        <Button variant="ghost" type="button" onClick={() => router.push('/admin')}>
-          Retour
-        </Button>
-      </div>
-    </form>
+        <div className="flex gap-3">
+          {isEditable && (
+            <Button type="submit" isLoading={isSubmitting}>
+              Enregistrer les modifications
+            </Button>
+          )}
+          <Button variant="ghost" type="button" onClick={() => router.push('/admin')}>
+            Retour
+          </Button>
+        </div>
+      </form>
+    </div>
   )
 }
