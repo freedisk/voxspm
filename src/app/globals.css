@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #08111F;
+  --foreground: #DDE8F5;
+  --muted: #6A7E99;
+  --surface-1: #0F1E35;
+  --surface-2: #162540;
+  --surface-3: #1E2F50;
+  --ocean: #1B7FC4;
+  --ocean-light: #45A8E8;
+  --ocean-dark: #0F5A8E;
+  --miq: #10A585;
+  --miq-light: #2DD4BF;
+  --ext: #7B5EA7;
+  --ext-light: #A78BFA;
+  --rock: #4B5F7C;
+  --slate: #2A3F5C;
+  --success: #1CA87A;
+  --warning: #E8A020;
+  --danger: #D94F4F;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ocean: var(--ocean);
+  --color-ocean-light: var(--ocean-light);
+  --color-ocean-dark: var(--ocean-dark);
+  --color-miq: var(--miq);
+  --color-miq-light: var(--miq-light);
+  --color-ext: var(--ext);
+  --color-ext-light: var(--ext-light);
+  --color-rock: var(--rock);
+  --color-slate: var(--slate);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+}
+
+/* Animation barres de progression — utilisée par ProgressBar et GeoBreakdown */
+@keyframes bar-fill {
+  from { width: 0%; }
 }
