@@ -124,6 +124,78 @@ export async function deletePoll(pollId: string): Promise<ActionResult> {
   return { success: true }
 }
 
+// ─── Édition complète d'un sondage ─────────────────────────────────────────
+
+interface UpdatePollData {
+  question?: string
+  proposer_name?: string | null
+  status?: 'pending' | 'active' | 'archived'
+  expires_at?: string | null
+  tagIds?: string[]
+  options?: { id?: string; text: string; order_index: number }[]
+}
+
+export async function updatePoll(pollId: string, data: UpdatePollData): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (isError(auth)) return auth
+  const { supabase, userId } = auth
+
+  // Mettre à jour les champs du sondage
+  const pollUpdate: Record<string, unknown> = {}
+  if (data.question !== undefined) pollUpdate.question = data.question
+  if (data.proposer_name !== undefined) pollUpdate.proposer_name = data.proposer_name
+  if (data.expires_at !== undefined) pollUpdate.expires_at = data.expires_at
+  if (data.status !== undefined) {
+    pollUpdate.status = data.status
+    // Si on passe en actif, enregistrer qui a validé
+    if (data.status === 'active') {
+      pollUpdate.validated_by = userId
+      pollUpdate.validated_at = new Date().toISOString()
+    }
+  }
+
+  if (Object.keys(pollUpdate).length > 0) {
+    const { error } = await supabase
+      .from('polls')
+      .update(pollUpdate)
+      .eq('id', pollId)
+    if (error) return { success: false, error: error.message }
+  }
+
+  // Mettre à jour les tags — supprimer tous puis réinsérer
+  // Plus simple et fiable que de faire un diff sur une table de jointure
+  if (data.tagIds !== undefined) {
+    await supabase.from('poll_tags').delete().eq('poll_id', pollId)
+    if (data.tagIds.length > 0) {
+      const { error } = await supabase
+        .from('poll_tags')
+        .insert(data.tagIds.map((tag_id) => ({ poll_id: pollId, tag_id })))
+      if (error) return { success: false, error: error.message }
+    }
+  }
+
+  // Mettre à jour les options — supprimer les anciennes, insérer les nouvelles
+  // On ne peut pas modifier votes_count (géré par trigger), donc on ne touche
+  // aux options que sur les sondages pending (pas encore de votes)
+  if (data.options !== undefined) {
+    await supabase.from('options').delete().eq('poll_id', pollId)
+    const { error } = await supabase
+      .from('options')
+      .insert(data.options.map((opt) => ({
+        poll_id: pollId,
+        text: opt.text,
+        order_index: opt.order_index,
+      })))
+    if (error) return { success: false, error: error.message }
+  }
+
+  revalidatePath('/')
+  revalidatePath('/admin')
+  revalidatePath(`/admin/polls/${pollId}`)
+
+  return { success: true }
+}
+
 // ─── Gestion des tags ──────────────────────────────────────────────────────
 
 export async function createTag(

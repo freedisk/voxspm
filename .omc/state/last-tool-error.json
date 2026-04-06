@@ -1,0 +1,7 @@
+{
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"C:\\\\Users\\\\Pc\\\\Downloads\\\\Claude Code - Website - VOXSPM\\\\voxspm\\\\tailwind.config.ts\"}",
+  "error": "File does not exist. Note: your current working directory is C:\\Users\\Pc\\Downloads\\Claude Code - Website - VOXSPM\\voxspm.",
+  "timestamp": "2026-04-06T14:51:35.244Z",
+  "retry_count": 1
+}

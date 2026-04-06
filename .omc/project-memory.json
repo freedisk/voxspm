@@ -1,0 +1,388 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1775483747094,
+  "projectRoot": "C:\\Users\\Pc\\Downloads\\Claude Code - Website - VOXSPM\\voxspm",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "next",
+        "version": "16.2.2",
+        "category": "fullstack"
+      },
+      {
+        "name": "react",
+        "version": "19.2.4",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "19.2.4",
+        "category": "frontend"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": null,
+    "lintCommand": "npm run lint",
+    "devCommand": "npm run dev",
+    "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "start": "next start",
+      "lint": "eslint"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "public",
+      "src"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 5,
+      "lastAccessed": 1775483747045,
+      "keyFiles": [
+        "file.svg",
+        "globe.svg",
+        "next.svg",
+        "vercel.svg",
+        "window.svg"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1775483747052,
+      "keyFiles": []
+    },
+    "supabase": {
+      "path": "supabase",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1775483747053,
+      "keyFiles": [
+        "config.toml"
+      ]
+    },
+    "src\\app": {
+      "path": "src\\app",
+      "purpose": "Application code",
+      "fileCount": 4,
+      "lastAccessed": 1775483747055,
+      "keyFiles": [
+        "favicon.ico",
+        "globals.css",
+        "layout.tsx"
+      ]
+    },
+    "supabase\\migrations": {
+      "path": "supabase\\migrations",
+      "purpose": "Database migrations",
+      "fileCount": 0,
+      "lastAccessed": 1775483747056,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src\\lib\\supabase\\middleware.ts",
+      "accessCount": 5,
+      "lastAccessed": 1775501883382,
+      "type": "file"
+    },
+    {
+      "path": "supabase\\migrations\\003_triggers.sql",
+      "accessCount": 3,
+      "lastAccessed": 1775484164993,
+      "type": "file"
+    },
+    {
+      "path": "prompt.md",
+      "accessCount": 3,
+      "lastAccessed": 1775492468119,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\actions\\admin.ts",
+      "accessCount": 3,
+      "lastAccessed": 1775492494633,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\admin\\AdminShell.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1775501829222,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\layout.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1775501871883,
+      "type": "file"
+    },
+    {
+      "path": "supabase\\migrations\\001_schema.sql",
+      "accessCount": 2,
+      "lastAccessed": 1775484099294,
+      "type": "file"
+    },
+    {
+      "path": "supabase\\migrations\\002_rls.sql",
+      "accessCount": 2,
+      "lastAccessed": 1775484100469,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\globals.css",
+      "accessCount": 2,
+      "lastAccessed": 1775487122163,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\layout.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775490174449,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775490207075,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\poll\\[slug]\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775492297857,
+      "type": "file"
+    },
+    {
+      "path": "supabase\\seed.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775484047756,
+      "type": "file"
+    },
+    {
+      "path": "tsconfig.json",
+      "accessCount": 1,
+      "lastAccessed": 1775486560359,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\supabase\\client.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775486582262,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\supabase\\server.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775486586079,
+      "type": "file"
+    },
+    {
+      "path": "src\\middleware.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775486599996,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\hooks\\useGeoLocation.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775486795755,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\hooks\\useVote.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775486800806,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\hooks\\useRealtimeVotes.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775486809323,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\actions\\polls.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775486831511,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\ui\\Button.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487133891,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\ui\\Badge.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487135925,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\ui\\ProgressBar.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487139297,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\ui\\Modal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487144877,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\layout\\Header.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487156763,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\layout\\GeoModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487163827,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\polls\\TagFilter.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487173682,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\polls\\GeoBreakdown.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487184652,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\polls\\ResultsBars.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487188753,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\polls\\PollCard.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487194443,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\polls\\VoteForm.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775487203854,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\layout\\Providers.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775490166499,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\pages\\HomeClient.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492208361,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\pages\\PollDetailClient.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492234112,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\proposer\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492261040,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\admin\\StatsCards.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492688352,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\admin\\PollsTable.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492720054,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\admin\\TagsManager.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492745152,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492771763,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\polls\\[id]\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492777254,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\tags\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492781288,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\admin\\PollEditor.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775492813862,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\login\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775501856752,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

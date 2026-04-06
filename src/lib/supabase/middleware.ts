@@ -4,8 +4,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Rafraîchit la session Supabase à chaque requête (obligatoire pour SSR)
 // et protège les routes /admin/* pour les non-admins
 export async function updateSession(request: NextRequest) {
+  // Injecter le pathname dans les headers pour que les layouts serveur
+  // puissent connaître la route courante (Next.js ne le fournit pas autrement)
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', request.nextUrl.pathname)
+
   let supabaseResponse = NextResponse.next({
-    request,
+    request: {
+      headers: requestHeaders,
+    },
   })
 
   const supabase = createServerClient(
@@ -39,26 +46,49 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protection /admin/* : vérifier le rôle dans la table profiles
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
-    }
+  // Protection /admin/* : 3 cas distincts
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isLoginPage = request.nextUrl.pathname === '/admin/login'
 
-    // Vérifier le rôle admin dans profiles via la service-level query
-    // RLS permet à chaque user de lire son propre profil (profiles_own_read)
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+  if (isAdminRoute) {
+    if (isLoginPage) {
+      // Si déjà connecté en admin → rediriger vers le dashboard
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
 
-    if (profile?.role !== 'admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
+        if (profile?.role === 'admin') {
+          const url = request.nextUrl.clone()
+          url.pathname = '/admin'
+          return NextResponse.redirect(url)
+        }
+      }
+      // Sinon laisser accéder à la page login
+    } else {
+      // Toute autre route /admin/* nécessite une session
+      if (!user) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/admin/login'
+        return NextResponse.redirect(url)
+      }
+
+      // Vérifier le rôle admin dans profiles
+      // RLS permet à chaque user de lire son propre profil (profiles_own_read)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.role !== 'admin') {
+        // Connecté mais pas admin → retour accueil (pas login)
+        const url = request.nextUrl.clone()
+        url.pathname = '/'
+        return NextResponse.redirect(url)
+      }
     }
   }
 
