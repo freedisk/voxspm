@@ -1,56 +1,83 @@
 @import "tailwindcss";
 
+/* 🎨 Intent: Google Fonts chargées via <link> dans layout.tsx — pas via @import CSS car
+   Tailwind v4 génère du CSS qui invalide les @import positionnés après */
+
 :root {
-  --background: #08111F;
-  --foreground: #DDE8F5;
-  --muted: #6A7E99;
-  --surface-1: #0F1E35;
-  --surface-2: #162540;
-  --surface-3: #1E2F50;
-  --ocean: #1B7FC4;
-  --ocean-light: #45A8E8;
-  --ocean-dark: #0F5A8E;
-  --miq: #10A585;
-  --miq-light: #2DD4BF;
-  --ext: #7B5EA7;
-  --ext-light: #A78BFA;
-  --rock: #4B5F7C;
-  --slate: #2A3F5C;
+  --white: #FFFFFF;
+  --off-white: #F5F7FA;
+  --surface: #FFFFFF;
+  --surface-2: #F2F4F8;
+  --surface-3: #E8ECF2;
+  --text-primary: #0A1628;
+  --text-secondary: #3D506A;
+  --text-muted: #8A9BB0;
+  --border: rgba(0, 0, 0, 0.07);
+  --border-strong: rgba(0, 0, 0, 0.12);
+  --ocean: #1A6FB5;
+  --ocean-light: #2E8ED4;
+  --ocean-glow: rgba(26, 111, 181, 0.12);
+  --miq: #0C9A78;
+  --ext: #6B4FA0;
   --success: #1CA87A;
   --warning: #E8A020;
   --danger: #D94F4F;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-lg: 24px;
+  --radius-pill: 100px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-surface-1: var(--surface-1);
+  --color-white: var(--white);
+  --color-off-white: var(--off-white);
+  --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-ocean: var(--ocean);
   --color-ocean-light: var(--ocean-light);
-  --color-ocean-dark: var(--ocean-dark);
+  --color-ocean-glow: var(--ocean-glow);
   --color-miq: var(--miq);
-  --color-miq-light: var(--miq-light);
   --color-ext: var(--ext);
-  --color-ext-light: var(--ext-light);
-  --color-rock: var(--rock);
-  --color-slate: var(--slate);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  font-family: var(--font-sans);
+  background: var(--off-white);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Animation barres de progression — utilisée par ProgressBar et GeoBreakdown */
+/* 🎨 Intent: animation barres de progression + pulse pour le badge live */
 @keyframes bar-fill {
   from { width: 0%; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* 🎨 Intent: hover shadow/border pour PollCard — CSS pur, pas de JS event handlers */
+.poll-card-hover {
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, border-color 0.3s ease-out;
+}
+.poll-card-hover:hover {
+  box-shadow: var(--shadow-xl) !important;
+  border-color: rgba(26,111,181,0.15) !important;
 }

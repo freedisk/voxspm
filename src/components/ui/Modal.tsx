@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useCallback, type ReactNode } from 'react'
 
 interface ModalProps {
   isOpen: boolean
@@ -16,53 +16,73 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
     const dialog = dialogRef.current
     if (!dialog) return
 
-    if (isOpen) {
+    if (isOpen && !dialog.open) {
       dialog.showModal()
-    } else {
+    } else if (!isOpen && dialog.open) {
       dialog.close()
     }
   }, [isOpen])
 
+  const handleNativeClose = useCallback(() => {
+    if (isOpen) onClose()
+  }, [isOpen, onClose])
+
   useEffect(() => {
-    // Fermeture via Escape — géré nativement par <dialog>, on sync l'état React
     const dialog = dialogRef.current
     if (!dialog) return
+    dialog.addEventListener('close', handleNativeClose)
+    return () => dialog.removeEventListener('close', handleNativeClose)
+  }, [handleNativeClose])
 
-    function handleClose() {
+  function handleBackdropClick(e: React.MouseEvent<HTMLDialogElement>) {
+    if (e.target === dialogRef.current) {
       onClose()
     }
-
-    dialog.addEventListener('close', handleClose)
-    return () => dialog.removeEventListener('close', handleClose)
-  }, [onClose])
-
-  if (!isOpen) return null
+  }
 
   return (
+    // 🎨 Intent: overlay sombre bleuté + backdrop-blur, carte blanche radius-lg
     <dialog
       ref={dialogRef}
-      // ::backdrop est stylé via le pseudo-élément natif de <dialog>
-      className="
-        bg-surface-1 text-foreground rounded-2xl p-6 max-w-md w-[calc(100%-2rem)]
-        border border-rock/30 shadow-xl
-        backdrop:bg-black/60 backdrop:backdrop-blur-sm
-      "
+      onClick={handleBackdropClick}
+      className="max-w-[420px] w-[calc(100%-2rem)] p-0 border-0"
+      style={{
+        background: 'var(--white)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: 'var(--shadow-xl)',
+      }}
     >
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <button
-          onClick={onClose}
-          className="
-            min-h-[44px] min-w-[44px] flex items-center justify-center
-            text-muted hover:text-foreground rounded-lg hover:bg-surface-2
-            transition-colors
-          "
-          aria-label="Fermer"
-        >
-          ✕
-        </button>
-      </div>
-      {children}
+      <style>{`
+        dialog::backdrop {
+          background: rgba(10, 22, 40, 0.4);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        }
+      `}</style>
+      {isOpen && (
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h2
+              className="text-lg font-semibold"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              {title}
+            </h2>
+            <button
+              onClick={onClose}
+              className="
+                min-h-[44px] min-w-[44px] flex items-center justify-center
+                rounded-[var(--radius-sm)] transition-colors duration-200
+              "
+              style={{ color: 'var(--text-muted)' }}
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+          </div>
+          {children}
+        </div>
+      )}
     </dialog>
   )
 }

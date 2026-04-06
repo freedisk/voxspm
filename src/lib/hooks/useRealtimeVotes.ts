@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
@@ -32,15 +32,13 @@ export function useRealtimeVotes(
   const [options, setOptions] = useState<OptionData[]>(initialOptions)
   const [pollGeo, setPollGeo] = useState<PollGeo>(initialGeo)
   const [isConnected, setIsConnected] = useState(false)
-  const supabase = createClient()
+
+  // Ref stable pour le client Supabase — évite de recréer le canal à chaque render
+  const supabaseRef = useRef(createClient())
 
   useEffect(() => {
-    // Réinitialiser si les données initiales changent (navigation entre sondages)
-    setOptions(initialOptions)
-    setPollGeo(initialGeo)
-  }, [initialOptions, initialGeo])
+    const supabase = supabaseRef.current
 
-  useEffect(() => {
     // Canal unique par sondage — écoute options + polls en parallèle
     const channel: RealtimeChannel = supabase
       .channel(`poll-${pollId}`)
@@ -89,7 +87,7 @@ export function useRealtimeVotes(
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase, pollId])
+  }, [pollId])
 
   return { options, pollGeo, isConnected }
 }

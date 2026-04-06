@@ -6,10 +6,10 @@ interface BadgeProps {
 
 export default function Badge({ label, color, icon }: BadgeProps) {
   return (
+    // 🎨 Intent: pill coloré avec fond 10% de la couleur du tag
     <span
-      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium"
-      // Couleur dynamique par tag — ne peut pas être une classe Tailwind statique
-      style={{ backgroundColor: `${color}20`, color }}
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-pill)] text-xs font-medium"
+      style={{ backgroundColor: `${color}15`, color }}
     >
       {icon && <span>{icon}</span>}
       {label}

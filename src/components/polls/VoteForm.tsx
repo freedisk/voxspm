@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Button from '@/components/ui/Button'
 import { vote } from '@/lib/actions/polls'
 
 interface Option {
@@ -29,7 +28,6 @@ export default function VoteForm({
 
   async function handleSubmit() {
     if (!selectedOptionId) return
-
     setIsSubmitting(true)
     setError(null)
 
@@ -44,16 +42,14 @@ export default function VoteForm({
         setError(result.error)
       }
     }
-
     setIsSubmitting(false)
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Radio buttons custom — pas les natifs pour garder le design cohérent */}
+    <div className="flex flex-col gap-4">
       <fieldset>
         <legend className="sr-only">Choisissez une option</legend>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           {options
             .sort((a, b) => a.order_index - b.order_index)
             .map((option) => {
@@ -61,14 +57,28 @@ export default function VoteForm({
               return (
                 <label
                   key={option.id}
-                  className={`
-                    flex items-center gap-3 min-h-[44px] px-4 py-3
-                    rounded-xl cursor-pointer border transition-colors
-                    ${isSelected
-                      ? 'bg-ocean/10 border-ocean text-foreground'
-                      : 'bg-surface-2 border-rock/20 text-muted hover:border-ocean/30'
+                  className="
+                    flex items-center gap-3 min-h-[44px] px-4 py-3.5
+                    rounded-[var(--radius-sm)] cursor-pointer
+                    transition-all duration-200
+                  "
+                  // 🎨 Intent: border 1.5px, hover → border ocean + fond ocean-glow
+                  style={{
+                    border: `1.5px solid ${isSelected ? 'var(--ocean)' : 'var(--border-strong)'}`,
+                    background: isSelected ? 'var(--ocean-glow)' : 'var(--white)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'var(--ocean)'
+                      e.currentTarget.style.background = 'var(--ocean-glow)'
                     }
-                  `}
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'var(--border-strong)'
+                      e.currentTarget.style.background = 'var(--white)'
+                    }
+                  }}
                 >
                   <input
                     type="radio"
@@ -78,19 +88,21 @@ export default function VoteForm({
                     onChange={() => setSelectedOptionId(option.id)}
                     className="sr-only"
                   />
-                  {/* Indicateur visuel radio */}
+                  {/* 🎨 Intent: radio custom 18px, selected → fond ocean + inset shadow blanc */}
                   <span
-                    className={`
-                      w-4 h-4 shrink-0 rounded-full border-2 transition-colors
-                      flex items-center justify-center
-                      ${isSelected ? 'border-ocean' : 'border-rock'}
-                    `}
+                    className="w-[18px] h-[18px] shrink-0 rounded-full border-2 flex items-center justify-center transition-all duration-200"
+                    style={{
+                      borderColor: isSelected ? 'var(--ocean)' : 'var(--border-strong)',
+                      background: isSelected ? 'var(--ocean)' : 'transparent',
+                      boxShadow: isSelected ? 'inset 0 0 0 3px var(--white)' : 'none',
+                    }}
+                  />
+                  <span
+                    className="text-sm"
+                    style={{ color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)' }}
                   >
-                    {isSelected && (
-                      <span className="w-2 h-2 rounded-full bg-ocean" />
-                    )}
+                    {option.text}
                   </span>
-                  <span className="text-sm">{option.text}</span>
                 </label>
               )
             })}
@@ -98,16 +110,27 @@ export default function VoteForm({
       </fieldset>
 
       {error && (
-        <p className="text-sm text-danger">{error}</p>
+        <p className="text-sm" style={{ color: 'var(--danger)' }}>{error}</p>
       )}
 
-      <Button
+      {/* 🎨 Intent: bouton Voter — fond ocean, shadow bleu, micro lift */}
+      <button
         onClick={handleSubmit}
-        isLoading={isSubmitting}
-        disabled={!selectedOptionId}
+        disabled={!selectedOptionId || isSubmitting}
+        className="
+          min-h-[44px] px-6 py-3 rounded-[var(--radius-sm)]
+          text-sm font-medium text-white
+          transition-all duration-200
+          disabled:opacity-50 disabled:cursor-not-allowed
+          hover:enabled:-translate-y-[1px]
+        "
+        style={{
+          background: 'var(--ocean)',
+          boxShadow: '0 4px 16px rgba(26,111,181,0.25)',
+        }}
       >
-        Voter
-      </Button>
+        {isSubmitting ? 'Vote en cours...' : 'Voter'}
+      </button>
     </div>
   )
 }

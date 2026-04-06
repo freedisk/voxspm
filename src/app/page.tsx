@@ -1,6 +1,8 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import PollCard from '@/components/polls/PollCard'
 import HomeClient from '@/components/pages/HomeClient'
+import Hero from '@/components/layout/Hero'
 
 interface Tag {
   id: string
@@ -31,13 +33,11 @@ export default async function HomePage({
   const supabase = await createClient()
   const params = await searchParams
 
-  // Récupérer tous les tags pour le filtre
   const { data: allTags } = await supabase
     .from('tags')
     .select('*')
     .order('order_index')
 
-  // Normaliser les tags actifs depuis les query params
   const rawTag = params.tag
   const activeTagSlugs: string[] = Array.isArray(rawTag)
     ? rawTag
@@ -45,7 +45,6 @@ export default async function HomePage({
       ? [rawTag]
       : []
 
-  // Récupérer les sondages actifs avec leurs tags via la jointure
   const { data: rawPolls } = await supabase
     .from('polls')
     .select(`
@@ -57,7 +56,6 @@ export default async function HomePage({
     .order('proposed_at', { ascending: false })
     .limit(50)
 
-  // Assembler les tags complets sur chaque sondage
   const tagMap = new Map((allTags ?? []).map((t) => [t.id, t]))
 
   let polls: PollWithTags[] = (rawPolls ?? []).map((poll) => ({
@@ -67,42 +65,84 @@ export default async function HomePage({
       .filter((t): t is Tag => t !== undefined),
   }))
 
-  // Filtrer côté serveur par tags actifs
   if (activeTagSlugs.length > 0) {
     polls = polls.filter((poll) =>
       poll.tags.some((tag) => activeTagSlugs.includes(tag.slug))
     )
   }
 
+  // Stats pour le Hero
+  const totalVotes = polls.reduce((sum, p) => sum + p.total_votes, 0)
+  const activePolls = polls.length
+
+  // Compteur sondages complétés (archivés) — requête séparée
+  const { count: completedPolls } = await supabase
+    .from('polls')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'archived')
+
   return (
     <div>
-      <HomeClient
-        tags={allTags ?? []}
-        activeTagSlugs={activeTagSlugs}
+      {/* 🎨 Intent: Hero plein-largeur au-dessus de la liste */}
+      <Hero
+        activePolls={activePolls}
+        totalVotes={totalVotes}
+        completedPolls={(completedPolls ?? 0) + activePolls}
       />
 
-      {polls.length === 0 ? (
-        <p className="text-center text-muted py-12">
-          Aucun sondage en cours — revenez bientôt !
-        </p>
-      ) : (
-        <div className="flex flex-col gap-4 mt-4">
-          {polls.map((poll) => (
-            <PollCard
-              key={poll.id}
-              slug={poll.slug}
-              question={poll.question}
-              total_votes={poll.total_votes}
-              proposed_at={poll.proposed_at}
-              proposer_name={poll.proposer_name}
-              tags={poll.tags}
-              votes_sp={poll.votes_sp}
-              votes_miq={poll.votes_miq}
-              votes_ext={poll.votes_ext}
-            />
-          ))}
-        </div>
-      )}
+      {/* 🎨 Intent: ancre pour le scroll depuis le bouton Hero */}
+      <div id="sondages" className="pt-8">
+        <HomeClient
+          tags={allTags ?? []}
+          activeTagSlugs={activeTagSlugs}
+        />
+
+        {polls.length === 0 ? (
+          <p
+            className="text-center py-16 text-sm"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Aucun sondage en cours — revenez bientôt !
+          </p>
+        ) : (
+          <div className="grid gap-4 mt-6 sm:grid-cols-2">
+            {polls.map((poll) => (
+              <PollCard
+                key={poll.id}
+                slug={poll.slug}
+                question={poll.question}
+                total_votes={poll.total_votes}
+                proposed_at={poll.proposed_at}
+                proposer_name={poll.proposer_name}
+                tags={poll.tags}
+                votes_sp={poll.votes_sp}
+                votes_miq={poll.votes_miq}
+                votes_ext={poll.votes_ext}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 🎨 Intent: FAB mobile — sticky bottom, pill sombre, visible md:hidden */}
+      <Link
+        href="/proposer"
+        className="
+          fixed bottom-6 left-1/2 -translate-x-1/2 z-50
+          md:hidden
+          min-h-[44px] px-6 py-3
+          rounded-[var(--radius-pill)]
+          text-sm font-medium text-white
+          transition-all duration-200
+          active:scale-95
+        "
+        style={{
+          background: 'var(--text-primary)',
+          boxShadow: 'var(--shadow-lg)',
+        }}
+      >
+        ✦ Proposer un sondage
+      </Link>
     </div>
   )
 }

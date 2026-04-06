@@ -63,13 +63,8 @@ export default function PollDetailClient({
     }
   )
 
-  const handleVoteSuccess = useCallback(() => {
-    setJustVoted(true)
-  }, [])
-
-  const handleLocationRequired = useCallback(() => {
-    setGeoModalOpen(true)
-  }, [])
+  const handleVoteSuccess = useCallback(() => setJustVoted(true), [])
+  const handleLocationRequired = useCallback(() => setGeoModalOpen(true), [])
 
   const date = new Date(poll.proposed_at).toLocaleDateString('fr-FR', {
     day: 'numeric',
@@ -80,7 +75,7 @@ export default function PollDetailClient({
   const showVoteForm = !hasVoted && !justVoted && !voteLoading
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="max-w-[680px] mx-auto py-8 flex flex-col gap-6">
       {/* Tags */}
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -90,24 +85,44 @@ export default function PollDetailClient({
         </div>
       )}
 
-      {/* Question */}
-      <h1 className="text-2xl font-bold text-foreground leading-tight">
+      {/* 🎨 Intent: question en Instrument Serif, grande taille */}
+      <h1
+        className="leading-tight tracking-[-0.5px]"
+        style={{
+          fontFamily: 'var(--font-serif)',
+          fontSize: 'clamp(28px, 4vw, 40px)',
+          color: 'var(--text-primary)',
+        }}
+      >
         {poll.question}
       </h1>
 
-      {/* Meta */}
-      <p className="text-sm text-muted">
+      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
         Proposé par {poll.proposer_name ?? 'Anonyme'} le {date}
       </p>
 
       {poll.description && (
-        <p className="text-sm text-muted">{poll.description}</p>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          {poll.description}
+        </p>
       )}
 
-      {/* Vote form — affiché uniquement si l'user n'a pas encore voté */}
+      {/* Vote form */}
       {showVoteForm && (
-        <div className="bg-surface-1 rounded-xl p-5 border border-rock/20">
-          <h2 className="text-sm font-medium text-muted mb-3">Votre vote</h2>
+        <div
+          className="rounded-[var(--radius)] p-5 sm:p-6 border"
+          style={{
+            background: 'var(--white)',
+            borderColor: 'var(--border)',
+            boxShadow: 'var(--shadow-md)',
+          }}
+        >
+          <h2
+            className="text-xs font-medium uppercase tracking-wider mb-4"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Votre vote
+          </h2>
           <VoteForm
             pollId={poll.id}
             options={options}
@@ -118,22 +133,47 @@ export default function PollDetailClient({
       )}
 
       {(hasVoted || justVoted) && (
-        <p className="text-sm text-success font-medium">
+        <div
+          className="flex items-center gap-2 px-4 py-3 rounded-[var(--radius-sm)] text-sm font-medium"
+          style={{
+            background: 'rgba(28,168,122,0.08)',
+            color: 'var(--success)',
+          }}
+        >
           ✓ Votre vote a été enregistré
-        </p>
+        </div>
       )}
 
-      {/* Résultats — toujours visibles */}
-      <div className="bg-surface-1 rounded-xl p-5 border border-rock/20">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-medium text-muted">Résultats</h2>
-          <div className="flex items-center gap-2 text-xs text-muted">
-            <span className="tabular-nums">{pollGeo.total_votes} vote{pollGeo.total_votes > 1 ? 's' : ''}</span>
-            {/* Point vert animé = connexion Realtime active */}
+      {/* Résultats */}
+      <div
+        className="rounded-[var(--radius)] p-5 sm:p-6 border"
+        style={{
+          background: 'var(--white)',
+          borderColor: 'var(--border)',
+          boxShadow: 'var(--shadow-sm)',
+        }}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <h2
+            className="text-xs font-medium uppercase tracking-wider"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Résultats
+          </h2>
+          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+            <span className="tabular-nums">
+              {pollGeo.total_votes} vote{pollGeo.total_votes > 1 ? 's' : ''}
+            </span>
             {isConnected && (
-              <span className="relative flex h-2 w-2" title="Résultats en direct">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+              <span className="flex items-center gap-1">
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: 'var(--success)',
+                    animation: 'pulse-dot 2s ease-in-out infinite',
+                  }}
+                />
+                <span style={{ color: 'var(--success)' }}>Live</span>
               </span>
             )}
           </div>
@@ -141,8 +181,15 @@ export default function PollDetailClient({
         <ResultsBars options={options} total_votes={pollGeo.total_votes} />
       </div>
 
-      {/* Répartition géo — toujours visible */}
-      <div className="bg-surface-1 rounded-xl p-5 border border-rock/20">
+      {/* Geo breakdown */}
+      <div
+        className="rounded-[var(--radius)] p-5 sm:p-6 border"
+        style={{
+          background: 'var(--white)',
+          borderColor: 'var(--border)',
+          boxShadow: 'var(--shadow-sm)',
+        }}
+      >
         <GeoBreakdown
           votes_sp={pollGeo.votes_sp}
           votes_miq={pollGeo.votes_miq}
@@ -152,7 +199,6 @@ export default function PollDetailClient({
         />
       </div>
 
-      {/* GeoModal si location requise pendant le vote */}
       <GeoModal isOpen={geoModalOpen} onClose={() => setGeoModalOpen(false)} />
     </div>
   )
