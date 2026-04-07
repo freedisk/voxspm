@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { revalidatePath } from 'next/cache'
 
 type ActionResult =
   | { success: true; data?: unknown }
@@ -86,82 +85,10 @@ const proposePollSchema = z.object({
   tagIds: z.array(z.string().uuid()).max(3, 'Maximum 3 tags').optional(),
 })
 
-export async function proposePoll(data: z.input<typeof proposePollSchema>): Promise<ActionResult> {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Non authentifié', code: 'NOT_AUTHENTICATED' }
-  }
-
-  const parsed = proposePollSchema.safeParse(data)
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0].message }
-  }
-
-  const { question, proposerName, options, tagIds } = parsed.data
-
-  // Rate limit : max 3 sondages pending par utilisateur
-  // Empêche le spam de propositions sans pénaliser les utilisateurs actifs
-  const { count } = await supabase
-    .from('polls')
-    .select('*', { count: 'exact', head: true })
-    .eq('proposed_by', user.id)
-    .eq('status', 'pending')
-
-  if (count !== null && count >= 3) {
-    return { success: false, error: 'Vous avez déjà 3 propositions en attente', code: 'RATE_LIMITED' }
-  }
-
-  // INSERT poll — le slug est généré par le trigger DB, pas ici
-  const { data: poll, error: pollError } = await supabase
-    .from('polls')
-    .insert({
-      question,
-      proposer_name: proposerName,
-      proposed_by: user.id,
-      status: 'pending',
-    })
-    .select('id')
-    .single()
-
-  if (pollError || !poll) {
-    return { success: false, error: pollError?.message ?? 'Erreur création sondage' }
-  }
-
-  // INSERT options avec order_index pour préserver l'ordre saisi
-  const optionsInsert = options.map((text, index) => ({
-    poll_id: poll.id,
-    text,
-    order_index: index,
-  }))
-
-  const { error: optionsError } = await supabase
-    .from('options')
-    .insert(optionsInsert)
-
-  if (optionsError) {
-    return { success: false, error: optionsError.message }
-  }
-
-  // INSERT poll_tags si des tags ont été sélectionnés
-  if (tagIds && tagIds.length > 0) {
-    const tagsInsert = tagIds.map((tagId) => ({
-      poll_id: poll.id,
-      tag_id: tagId,
-    }))
-
-    const { error: tagsError } = await supabase
-      .from('poll_tags')
-      .insert(tagsInsert)
-
-    if (tagsError) {
-      return { success: false, error: tagsError.message }
-    }
-  }
-
-  revalidatePath('/')
-
+// Remplacée par le client browser direct dans proposer/page.tsx
+// Signature conservée pour éviter les erreurs d'import
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function proposePoll(_data: z.input<typeof proposePollSchema>): Promise<ActionResult> {
   return { success: true }
 }
 
@@ -169,29 +96,11 @@ export async function proposePoll(data: z.input<typeof proposePollSchema>): Prom
 
 const locationSchema = z.enum(['saint_pierre', 'miquelon', 'exterieur'])
 
+// Remplacée par le client browser direct dans GeoContext.tsx
+// Signature conservée pour éviter les erreurs d'import
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function updateUserLocation(
-  location: z.input<typeof locationSchema>
+  _location: z.input<typeof locationSchema>
 ): Promise<ActionResult> {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { success: false, error: 'Non authentifié', code: 'NOT_AUTHENTICATED' }
-  }
-
-  const parsed = locationSchema.safeParse(location)
-  if (!parsed.success) {
-    return { success: false, error: 'Localisation invalide' }
-  }
-
-  const { error } = await supabase
-    .from('profiles')
-    .update({ location: parsed.data })
-    .eq('id', user.id)
-
-  if (error) {
-    return { success: false, error: error.message }
-  }
-
   return { success: true }
 }

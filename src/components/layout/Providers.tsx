@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, type ReactNode } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { SessionProvider } from '@/lib/context/SessionProvider'
 import { GeoProvider, useGeo } from '@/lib/context/GeoContext'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
@@ -11,17 +11,6 @@ import GeoModal from '@/components/layout/GeoModal'
 function AppShell({ children }: { children: ReactNode }) {
   const [geoModalOpen, setGeoModalOpen] = useState(false)
   const { location, isLoading } = useGeo()
-  const supabase = createClient()
-
-  useEffect(() => {
-    async function initAuth() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        await supabase.auth.signInAnonymously()
-      }
-    }
-    initAuth()
-  }, [supabase])
 
   // Ouvrir automatiquement la GeoModal si location non définie (premier visiteur)
   useEffect(() => {
@@ -45,11 +34,13 @@ function AppShell({ children }: { children: ReactNode }) {
   )
 }
 
-// Provider racine — GeoProvider wraps AppShell pour que useGeo() soit disponible partout
+// Provider racine — SessionProvider crée la session anon, GeoProvider lit la localisation
 export default function Providers({ children }: { children: ReactNode }) {
   return (
-    <GeoProvider>
-      <AppShell>{children}</AppShell>
-    </GeoProvider>
+    <SessionProvider>
+      <GeoProvider>
+        <AppShell>{children}</AppShell>
+      </GeoProvider>
+    </SessionProvider>
   )
 }

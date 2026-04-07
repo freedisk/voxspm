@@ -7,6 +7,7 @@ interface Option {
 interface ResultsBarsProps {
   options: Option[]
   total_votes: number
+  pulsedOptionId?: string | null
 }
 
 // 🎨 Intent: couleurs dégradées — leader ocean, 2nd bleu clair, reste slate
@@ -16,7 +17,7 @@ function getBarColor(rank: number): string {
   return '#CBD5E1'
 }
 
-export default function ResultsBars({ options, total_votes }: ResultsBarsProps) {
+export default function ResultsBars({ options, total_votes, pulsedOptionId }: ResultsBarsProps) {
   const maxVotes = Math.max(...options.map((o) => o.votes_count))
 
   // Trier par votes pour déterminer le rank de chaque option
@@ -59,12 +60,13 @@ export default function ResultsBars({ options, total_votes }: ResultsBarsProps) 
               }}
             >
               <div
-                className="h-full rounded-full"
+                // vox-pulse déclenche l'animation keyframe définie dans globals.css
+                className={`h-full rounded-full${pulsedOptionId === option.id ? ' vox-pulse' : ''}`}
                 style={{
                   width: `${pct}%`,
                   backgroundColor: barColor,
-                  transition: 'width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                  animation: 'bar-fill 0.8s ease-out',
+                  transition: 'width 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  animation: pulsedOptionId === option.id ? undefined : 'bar-fill 0.8s ease-out',
                 }}
               />
             </div>

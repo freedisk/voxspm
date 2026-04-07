@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import Badge from '@/components/ui/Badge'
 import VoteForm from '@/components/polls/VoteForm'
 import ResultsBars from '@/components/polls/ResultsBars'
@@ -62,6 +62,25 @@ export default function PollDetailClient({
       total_votes: poll.total_votes,
     }
   )
+
+  const [pulsedOptionId, setPulsedOptionId] = useState<string | null>(null)
+  const prevOptionsRef = useRef<OptionData[]>(initialOptions)
+
+  // Détecter quelle option a reçu un vote → pulse 800ms
+  useEffect(() => {
+    const prev = prevOptionsRef.current
+    const changed = options.find((opt) => {
+      const prevOpt = prev.find((p) => p.id === opt.id)
+      return prevOpt !== undefined && prevOpt.votes_count !== opt.votes_count
+    })
+    if (changed) {
+      setPulsedOptionId(changed.id)
+      const timer = setTimeout(() => setPulsedOptionId(null), 800)
+      prevOptionsRef.current = options
+      return () => clearTimeout(timer)
+    }
+    prevOptionsRef.current = options
+  }, [options])
 
   const handleVoteSuccess = useCallback(() => setJustVoted(true), [])
   const handleLocationRequired = useCallback(() => setGeoModalOpen(true), [])
@@ -178,7 +197,7 @@ export default function PollDetailClient({
             )}
           </div>
         </div>
-        <ResultsBars options={options} total_votes={pollGeo.total_votes} />
+        <ResultsBars options={options} total_votes={pollGeo.total_votes} pulsedOptionId={pulsedOptionId} />
       </div>
 
       {/* Geo breakdown */}

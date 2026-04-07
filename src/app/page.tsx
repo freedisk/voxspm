@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import PollCard from '@/components/polls/PollCard'
+import PollCardLive from '@/components/polls/PollCardLive'
 import HomeClient from '@/components/pages/HomeClient'
 import Hero from '@/components/layout/Hero'
 
@@ -115,8 +115,9 @@ export default async function HomePage({
           // 🎨 Intent: 1 colonne pleine largeur, max-w-3xl centré pour lisibilité
           <div className="flex flex-col gap-6 mt-6 max-w-3xl mx-auto">
             {polls.map((poll) => (
-              <PollCard
+              <PollCardLive
                 key={poll.id}
+                id={poll.id}
                 slug={poll.slug}
                 question={poll.question}
                 total_votes={poll.total_votes}

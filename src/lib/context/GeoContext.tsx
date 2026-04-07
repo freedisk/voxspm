@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { updateUserLocation } from '@/lib/actions/polls'
 
 type UserLocation = 'saint_pierre' | 'miquelon' | 'exterieur'
 
@@ -14,6 +13,14 @@ interface GeoContextValue {
 }
 
 const GeoContext = createContext<GeoContextValue | null>(null)
+
+// Persist en DB via le client browser — pas de Server Action
+async function persistLocation(userId: string, loc: UserLocation) {
+  const supabase = createClient()
+  await supabase
+    .from('profiles')
+    .upsert({ id: userId, location: loc }, { onConflict: 'id' })
+}
 
 export function GeoProvider({ children }: { children: ReactNode }) {
   const [location, setLocation] = useState<UserLocation | null>(null)
@@ -41,14 +48,27 @@ export function GeoProvider({ children }: { children: ReactNode }) {
     fetchLocation()
   }, [])
 
-  // Persiste en DB puis met à jour le state local immédiatement
+  // Optimistic update : state local d'abord, puis persist DB en background
+  // La modal se ferme immédiatement — pas de blocage UX
   async function updateAndPersistLocation(newLocation: UserLocation): Promise<boolean> {
-    const result = await updateUserLocation(newLocation)
-    if (result.success) {
-      setLocation(newLocation)
-      return true
+    setLocation(newLocation)
+
+    // Fire-and-forget : persist en background via client direct
+    persistInBackground(newLocation)
+
+    return true
+  }
+
+  async function persistInBackground(newLocation: UserLocation) {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await persistLocation(user.id, newLocation)
+      }
+    } catch (e) {
+      console.error('GeoContext update failed:', e)
     }
-    return false
   }
 
   return (

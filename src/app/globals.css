@@ -73,6 +73,17 @@ body {
   50% { opacity: 0.4; }
 }
 
+/* 🎨 Intent: pulse sur la barre qui vient de recevoir un vote en temps réel */
+@keyframes voxPulse {
+  0%   { opacity: 1; }
+  40%  { opacity: 0.6; background-color: #1560a0; }
+  100% { opacity: 1; }
+}
+
+.vox-pulse {
+  animation: voxPulse 800ms ease-out 1;
+}
+
 /* 🎨 Intent: hover shadow/border pour PollCard — CSS pur, pas de JS event handlers */
 .poll-card-hover {
   transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, border-color 0.3s ease-out;
