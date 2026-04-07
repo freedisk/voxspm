@@ -15,11 +15,17 @@ interface GeoContextValue {
 const GeoContext = createContext<GeoContextValue | null>(null)
 
 // Persist en DB via le client browser — pas de Server Action
+// Le profil existe déjà (créé par le trigger handle_new_user) → update suffit
 async function persistLocation(userId: string, loc: UserLocation) {
   const supabase = createClient()
-  await supabase
+  const { error } = await supabase
     .from('profiles')
-    .upsert({ id: userId, location: loc }, { onConflict: 'id' })
+    .update({ location: loc })
+    .eq('id', userId)
+
+  if (error) {
+    console.error('persistLocation failed:', error)
+  }
 }
 
 export function GeoProvider({ children }: { children: ReactNode }) {
