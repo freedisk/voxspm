@@ -126,27 +126,27 @@
       "type": "file"
     },
     {
+      "path": "src\\app\\proposer\\page.tsx",
+      "accessCount": 24,
+      "lastAccessed": 1775525367262,
+      "type": "file"
+    },
+    {
       "path": "src\\lib\\actions\\polls.ts",
       "accessCount": 19,
       "lastAccessed": 1775523545049,
       "type": "file"
     },
     {
-      "path": "src\\app\\proposer\\page.tsx",
-      "accessCount": 19,
-      "lastAccessed": 1775524240887,
+      "path": "prompt.md",
+      "accessCount": 13,
+      "lastAccessed": 1775525299621,
       "type": "file"
     },
     {
       "path": "src\\components\\layout\\Providers.tsx",
       "accessCount": 12,
       "lastAccessed": 1775523215200,
-      "type": "file"
-    },
-    {
-      "path": "prompt.md",
-      "accessCount": 12,
-      "lastAccessed": 1775523428638,
       "type": "file"
     },
     {
@@ -192,6 +192,12 @@
       "type": "file"
     },
     {
+      "path": "src\\lib\\supabase\\middleware.ts",
+      "accessCount": 8,
+      "lastAccessed": 1775525697342,
+      "type": "file"
+    },
+    {
       "path": "src\\components\\layout\\Header.tsx",
       "accessCount": 7,
       "lastAccessed": 1775505477031,
@@ -210,12 +216,6 @@
       "type": "file"
     },
     {
-      "path": "src\\lib\\supabase\\middleware.ts",
-      "accessCount": 6,
-      "lastAccessed": 1775510010929,
-      "type": "file"
-    },
-    {
       "path": "src\\components\\polls\\TagFilter.tsx",
       "accessCount": 5,
       "lastAccessed": 1775505563213,
@@ -225,6 +225,12 @@
       "path": "src\\components\\layout\\GeoModal.tsx",
       "accessCount": 5,
       "lastAccessed": 1775510333359,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\layout.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1775525710879,
       "type": "file"
     },
     {
@@ -261,12 +267,6 @@
       "path": "src\\components\\admin\\AdminShell.tsx",
       "accessCount": 3,
       "lastAccessed": 1775501829222,
-      "type": "file"
-    },
-    {
-      "path": "src\\app\\admin\\layout.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1775501871883,
       "type": "file"
     },
     {
@@ -354,6 +354,18 @@
       "type": "file"
     },
     {
+      "path": "src\\app\\admin\\login\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775525635574,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\layout\\Footer.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775525683424,
+      "type": "file"
+    },
+    {
       "path": "supabase\\seed.sql",
       "accessCount": 1,
       "lastAccessed": 1775484047756,
@@ -393,18 +405,6 @@
       "path": "src\\app\\admin\\tags\\page.tsx",
       "accessCount": 1,
       "lastAccessed": 1775492781288,
-      "type": "file"
-    },
-    {
-      "path": "src\\app\\admin\\login\\page.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775501856752,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\layout\\Footer.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775507497334,
       "type": "file"
     },
     {

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { z } from 'zod'
 import Button from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
-import { useSession } from '@/lib/context/SessionProvider'
 
 interface Tag {
   id: string
@@ -27,7 +26,6 @@ const proposePollSchema = z.object({
 const dotColors = ['#1A6FB5', '#0C9A78', '#6B4FA0', '#E8A020', '#D94F4F', '#8A9BB0']
 
 export default function ProposerPage() {
-  const { isReady } = useSession()
   const [question, setQuestion] = useState('')
   const [proposerName, setProposerName] = useState('')
   const [options, setOptions] = useState(['', ''])
@@ -86,59 +84,19 @@ export default function ProposerPage() {
     setIsSubmitting(true)
 
     try {
-      const supabase = createClient()
-
-      // Récupérer ou créer la session anonyme côté client
-      let { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        const { data, error: anonError } = await supabase.auth.signInAnonymously()
-        console.error('signInAnonymously result:', { data, error: anonError })
-        user = data.user
-      }
-      if (!user) throw new Error('Session impossible')
-
-      // Insérer le sondage — le slug est généré par le trigger DB
-      const { data: poll, error: pollError } = await supabase
-        .from('polls')
-        .insert({
+      const response = await fetch('/api/propose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           question,
           proposer_name: proposerName || null,
-          proposed_by: user.id,
-          status: 'pending',
-        })
-        .select('id')
-        .single()
+          options: options.filter((o) => o.trim()),
+          tag_ids: selectedTagIds,
+        }),
+      })
 
-      if (pollError || !poll) throw pollError ?? new Error('Erreur création sondage')
-
-      // Insérer les options avec order_index
-      const optionsInsert = options
-        .filter((o) => o.trim())
-        .map((text, i) => ({
-          poll_id: poll.id,
-          text,
-          order_index: i,
-        }))
-
-      const { error: optError } = await supabase
-        .from('options')
-        .insert(optionsInsert)
-
-      if (optError) throw optError
-
-      // Insérer les tags sélectionnés
-      if (selectedTagIds.length > 0) {
-        const tagsInsert = selectedTagIds.map((tagId) => ({
-          poll_id: poll.id,
-          tag_id: tagId,
-        }))
-
-        const { error: tagsError } = await supabase
-          .from('poll_tags')
-          .insert(tagsInsert)
-
-        if (tagsError) throw tagsError
-      }
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error)
 
       setSuccess(true)
       setQuestion('')
@@ -377,8 +335,8 @@ export default function ProposerPage() {
         )}
 
         {/* 🎨 Intent: bouton submit full-width ocean avec shadow bleu */}
-        <Button type="submit" isLoading={isSubmitting} disabled={!isReady || isSubmitting} className="w-full">
-          {!isReady ? 'Chargement...' : 'Envoyer ma proposition'}
+        <Button type="submit" isLoading={isSubmitting} className="w-full">
+          Envoyer ma proposition
         </Button>
       </form>
     </div>

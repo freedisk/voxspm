@@ -30,7 +30,7 @@ export default async function AdminLayout({
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') redirect('/')
+  if (profile?.role !== 'admin') redirect('/admin/login')
 
   return (
     <AdminShell email={user.email ?? 'Admin'}>

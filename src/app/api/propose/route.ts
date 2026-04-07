@@ -1,29 +1,3 @@
-Dans VoxSPM, créer une API Route Next.js pour les propositions
-de sondage, qui bypasse la RLS en utilisant la service role key.
-
-─── ÉTAPE 1 : Vérifier les variables d'environnement ───
-
-Vérifier que .env.local contient :
-  SUPABASE_SERVICE_ROLE_KEY=...
-
-Si absent → arrêter et me le signaler. Ne pas continuer.
-
-─── ÉTAPE 2 : Créer le client service role ───
-
-Vérifier si lib/supabase/admin.ts existe déjà.
-Sinon créer lib/supabase/admin.ts :
-
-import { createClient } from '@supabase/supabase-js'
-
-export const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-─── ÉTAPE 3 : Créer l'API Route ───
-
-Créer app/api/propose/route.ts :
-
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
@@ -104,40 +78,3 @@ export async function POST(req: NextRequest) {
     )
   }
 }
-
-─── ÉTAPE 4 : Modifier app/proposer/page.tsx ───
-
-Remplacer tout le bloc Supabase dans handleSubmit
-par un simple fetch :
-
-const response = await fetch('/api/propose', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    question,
-    proposer_name: proposerName || null,
-    options: options.filter(o => o.trim()),
-    tag_ids: selectedTagIds,
-  }),
-})
-
-const result = await response.json()
-if (!response.ok) throw new Error(result.error)
-
-setSuccess(true)
-
-Supprimer tout le code signInAnonymously et inserts
-Supabase directs dans handleSubmit.
-Supprimer l'import de useSession si plus utilisé.
-Garder le reste du composant identique.
-
-─── CONTRAINTES ───
-
-Ne pas modifier :
-- lib/hooks/ (tous les fichiers)
-- lib/supabase/client.ts et server.ts
-- lib/actions/ (tous les fichiers)
-- Tous les fichiers admin
-- Le schéma DB / migrations
-
-À la fin : npm run build doit passer sans erreur.

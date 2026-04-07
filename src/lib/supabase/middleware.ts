@@ -84,9 +84,9 @@ export async function updateSession(request: NextRequest) {
         .single()
 
       if (profile?.role !== 'admin') {
-        // Connecté mais pas admin → retour accueil (pas login)
+        // Connecté mais pas admin → rediriger vers la page login admin
         const url = request.nextUrl.clone()
-        url.pathname = '/'
+        url.pathname = '/admin/login'
         return NextResponse.redirect(url)
       }
     }
