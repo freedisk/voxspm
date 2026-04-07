@@ -91,7 +91,8 @@ export default function ProposerPage() {
       // Récupérer ou créer la session anonyme côté client
       let { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        const { data } = await supabase.auth.signInAnonymously()
+        const { data, error: anonError } = await supabase.auth.signInAnonymously()
+        console.error('signInAnonymously result:', { data, error: anonError })
         user = data.user
       }
       if (!user) throw new Error('Session impossible')
