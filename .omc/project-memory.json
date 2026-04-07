@@ -121,8 +121,8 @@
   "hotPaths": [
     {
       "path": "CLAUDE.md",
-      "accessCount": 25,
-      "lastAccessed": 1775509015144,
+      "accessCount": 37,
+      "lastAccessed": 1775526364243,
       "type": "file"
     },
     {
@@ -139,8 +139,8 @@
     },
     {
       "path": "prompt.md",
-      "accessCount": 13,
-      "lastAccessed": 1775525299621,
+      "accessCount": 15,
+      "lastAccessed": 1775569837573,
       "type": "file"
     },
     {
@@ -156,6 +156,18 @@
       "type": "file"
     },
     {
+      "path": "src\\components\\layout\\Header.tsx",
+      "accessCount": 10,
+      "lastAccessed": 1775569457442,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\layout.tsx",
+      "accessCount": 10,
+      "lastAccessed": 1775569488790,
+      "type": "file"
+    },
+    {
       "path": "src\\lib\\actions\\admin.ts",
       "accessCount": 9,
       "lastAccessed": 1775507906158,
@@ -165,12 +177,6 @@
       "path": "src\\app\\page.tsx",
       "accessCount": 9,
       "lastAccessed": 1775509594962,
-      "type": "file"
-    },
-    {
-      "path": "src\\app\\layout.tsx",
-      "accessCount": 9,
-      "lastAccessed": 1775523172811,
       "type": "file"
     },
     {
@@ -198,9 +204,9 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\layout\\Header.tsx",
+      "path": "src\\components\\layout\\Hero.tsx",
       "accessCount": 7,
-      "lastAccessed": 1775505477031,
+      "lastAccessed": 1775569841916,
       "type": "file"
     },
     {
@@ -315,12 +321,6 @@
       "path": "src\\components\\ui\\ProgressBar.tsx",
       "accessCount": 2,
       "lastAccessed": 1775503544785,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\layout\\Hero.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1775505239600,
       "type": "file"
     },
     {

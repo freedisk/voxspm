@@ -1,143 +1,60 @@
-Dans VoxSPM, créer une API Route Next.js pour les propositions
-de sondage, qui bypasse la RLS en utilisant la service role key.
+CONTEXTE
+========
+Projet : VoxSPM (Next.js 14 App Router, Tailwind)
+Mission : Fix visuel mineur — recentrer verticalement l'illustration
+du Hero par rapport au bloc texte (titre + sous-titre + CTA).
+Le pattern actuel "tombe" visuellement vers le bas et déborde à droite.
 
-─── ÉTAPE 1 : Vérifier les variables d'environnement ───
+FICHIER AUTORISÉ À MODIFIER (et SEULEMENT celui-là)
+===================================================
+- src/components/layout/Hero.tsx
 
-Vérifier que .env.local contient :
-  SUPABASE_SERVICE_ROLE_KEY=...
+FICHIERS INTERDITS
+==================
+- TOUT le reste du projet
+- Ne PAS toucher au SVG public/illustrations/hero-pattern.svg
+- Ne PAS toucher au Header
+- Ne PAS toucher à layout.tsx
+- Ne PAS modifier la logique GeoModal ni le contenu textuel
 
-Si absent → arrêter et me le signaler. Ne pas continuer.
+OBJECTIF
+========
+1. Le container flex du Hero doit avoir items-center (alignement vertical centré)
+2. L'illustration doit être visuellement équilibrée par rapport au bloc texte
+3. L'illustration ne doit PAS déborder à droite (overflow contenu)
+4. Sur desktop : split 60/40 conservé, mais centré verticalement
+5. Sur mobile : illustration toujours masquée (hidden md:block conservé)
 
-─── ÉTAPE 2 : Créer le client service role ───
+MODIFICATIONS PRÉCISES
+======================
 
-Vérifier si lib/supabase/admin.ts existe déjà.
-Sinon créer lib/supabase/admin.ts :
+1. Sur le container flex parent (celui qui contient hero-content + hero-illustration) :
+   - Ajouter items-center pour centrer verticalement les 2 colonnes
+   - Vérifier qu'il y a bien gap entre les 2 colonnes (gap-8 ou gap-12)
 
-import { createClient } from '@supabase/supabase-js'
+2. Sur le wrapper hero-illustration (la div qui contient le <Image>) :
+   - Ajouter overflow-hidden pour empêcher tout débordement
+   - S'assurer que la taille est contrainte (max-w-full)
+   - Position relative si besoin
 
-export const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+3. Sur le composant <Image> du pattern :
+   - Garder priority
+   - className doit inclure : w-full h-auto object-contain
+   - Conserver alt="" et aria-hidden="true"
+   - Si besoin, ajouter une max-height pour éviter qu'elle soit plus haute que le contenu texte (par exemple max-h-[500px])
 
-─── ÉTAPE 3 : Créer l'API Route ───
+4. Vérifier que la section Hero parente n'a pas de overflow visible qui laisserait le SVG dépasser
 
-Créer app/api/propose/route.ts :
+CONTRAINTES STRICTES
+====================
+- Ne RIEN changer d'autre dans Hero.tsx (titre, sous-titre, CTA, badge "1 sondage en cours", stats row)
+- Ne PAS toucher au SVG source
+- Ne PAS installer de dépendance
+- Ne PAS modifier tailwind.config
+- À la fin : npm run build doit passer sans erreur
 
-import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase/admin'
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json()
-    const { question, proposer_name, options, tag_ids } = body
-
-    // Validation minimale
-    if (!question || question.length < 10) {
-      return NextResponse.json(
-        { error: 'Question trop courte' },
-        { status: 400 }
-      )
-    }
-    if (!options || options.length < 2) {
-      return NextResponse.json(
-        { error: 'Minimum 2 options' },
-        { status: 400 }
-      )
-    }
-
-    // Insérer le sondage (service role — bypass RLS)
-    const { data: poll, error: pollError } = await supabaseAdmin
-      .from('polls')
-      .insert({
-        question,
-        proposer_name: proposer_name || null,
-        status: 'pending',
-      })
-      .select('id')
-      .single()
-
-    if (pollError || !poll) {
-      return NextResponse.json(
-        { error: pollError?.message ?? 'Erreur création' },
-        { status: 500 }
-      )
-    }
-
-    // Insérer les options
-    const optionsInsert = options
-      .filter((o: string) => o.trim())
-      .map((text: string, i: number) => ({
-        poll_id: poll.id,
-        text,
-        order_index: i,
-      }))
-
-    const { error: optError } = await supabaseAdmin
-      .from('options')
-      .insert(optionsInsert)
-
-    if (optError) {
-      return NextResponse.json(
-        { error: optError.message },
-        { status: 500 }
-      )
-    }
-
-    // Insérer les tags si présents
-    if (tag_ids && tag_ids.length > 0) {
-      await supabaseAdmin
-        .from('poll_tags')
-        .insert(tag_ids.map((tag_id: string) => ({
-          poll_id: poll.id,
-          tag_id,
-        })))
-    }
-
-    return NextResponse.json({ success: true })
-
-  } catch (err) {
-    console.error('API propose error:', err)
-    return NextResponse.json(
-      { error: 'Erreur serveur' },
-      { status: 500 }
-    )
-  }
-}
-
-─── ÉTAPE 4 : Modifier app/proposer/page.tsx ───
-
-Remplacer tout le bloc Supabase dans handleSubmit
-par un simple fetch :
-
-const response = await fetch('/api/propose', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    question,
-    proposer_name: proposerName || null,
-    options: options.filter(o => o.trim()),
-    tag_ids: selectedTagIds,
-  }),
-})
-
-const result = await response.json()
-if (!response.ok) throw new Error(result.error)
-
-setSuccess(true)
-
-Supprimer tout le code signInAnonymously et inserts
-Supabase directs dans handleSubmit.
-Supprimer l'import de useSession si plus utilisé.
-Garder le reste du composant identique.
-
-─── CONTRAINTES ───
-
-Ne pas modifier :
-- lib/hooks/ (tous les fichiers)
-- lib/supabase/client.ts et server.ts
-- lib/actions/ (tous les fichiers)
-- Tous les fichiers admin
-- Le schéma DB / migrations
-
-À la fin : npm run build doit passer sans erreur.
+VALIDATION FINALE
+=================
+1. npm run build passe sans erreur
+2. Récapituler les modifications exactes faites dans Hero.tsx (avant/après sur les classes modifiées)
+3. Confirmer qu'aucun autre fichier n'a été touché

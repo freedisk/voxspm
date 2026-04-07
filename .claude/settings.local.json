@@ -4,7 +4,8 @@
       "Bash(npm run:*)",
       "Bash(curl -s http://localhost:3001)",
       "mcp__claude_ai_Vercel__deploy_to_vercel",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(mkdir:*)"
     ]
   }
 }

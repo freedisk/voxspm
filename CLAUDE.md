@@ -43,8 +43,11 @@ voxspm/
 │   │   ├── poll/
 │   │   │   └── [slug]/
 │   │   │       └── page.tsx        # /poll/[slug] → détail sondage + vote
+│   │   ├── api/
+│   │   │   └── propose/
+│   │   │       └── route.ts        # POST /api/propose — service role, bypass RLS
 │   │   ├── proposer/
-│   │   │   └── page.tsx            # /proposer → formulaire proposition
+│   │   │   └── page.tsx            # /proposer → formulaire proposition (fetch /api/propose)
 │   │   └── admin/
 │   │       ├── layout.tsx          # AdminLayout — auth guard + AdminShell
 │   │       ├── login/
@@ -62,9 +65,10 @@ voxspm/
 │   │   │   ├── ProgressBar.tsx     # Barre animée avec leader highlight
 │   │   │   └── Modal.tsx           # div overlay fixed inset-0, Escape, body lock
 │   │   ├── polls/                  # Composants métier
-│   │   │   ├── PollCard.tsx        # Card pleine largeur: tags + serif + barres + geo mini + CTA
+│   │   │   ├── PollCard.tsx        # Card Server Component (statique, hover CSS)
+│   │   │   ├── PollCardLive.tsx    # Card Client Component avec Realtime + animations voxPulse
 │   │   │   ├── VoteForm.tsx        # Radio custom 18px + bouton vote
-│   │   │   ├── ResultsBars.tsx     # Barres résultats (leader 8px, ranked colors)
+│   │   │   ├── ResultsBars.tsx     # Barres résultats (leader 8px, ranked colors, pulsedOptionId)
 │   │   │   ├── GeoBreakdown.tsx    # Répartition SP/Miq/Ext (compact + full)
 │   │   │   └── TagFilter.tsx       # Pills scrollables, multi-select URL
 │   │   ├── pages/                  # Wrappers client pour les pages SSR
@@ -75,7 +79,7 @@ voxspm/
 │   │   │   ├── Hero.tsx            # Hero section avec stats, eyebrow, gradient
 │   │   │   ├── GeoModal.tsx        # 3 choix localisation, useGeo() → updateAndPersistLocation()
 │   │   │   ├── Footer.tsx          # Footer sombre #0A1628, liens, copyright
-│   │   │   └── Providers.tsx       # GeoProvider + auth anonyme + GeoModal auto
+│   │   │   └── Providers.tsx       # SessionProvider + GeoProvider + GeoModal auto
 │   │   └── admin/
 │   │       ├── AdminShell.tsx      # Nav admin + déconnexion
 │   │       ├── PollsTable.tsx      # Table filtrable + actions contextuelles
@@ -86,22 +90,25 @@ voxspm/
 │   │   ├── supabase/
 │   │   │   ├── client.ts           # createBrowserClient()
 │   │   │   ├── server.ts           # createServerClient() — SSR
+│   │   │   ├── admin.ts            # createClient service role (bypass RLS, API Routes only)
 │   │   │   └── middleware.ts       # updateSession() + auth admin + x-pathname
 │   │   ├── context/
-│   │   │   └── GeoContext.tsx      # GeoProvider + useGeo() — source de vérité partagée
+│   │   │   ├── GeoContext.tsx      # GeoProvider + useGeo() — persist via client browser direct
+│   │   │   └── SessionProvider.tsx # Session anonyme au montage (signInAnonymously côté client)
 │   │   ├── hooks/
 │   │   │   ├── useVote.ts          # Vérifie vote existant (RLS)
 │   │   │   ├── useGeoLocation.ts   # Lit/écrit profiles.location (utilisé par useGeo)
 │   │   │   └── useRealtimeVotes.ts # Subscriptions Realtime (ref stable, pollId seul en dep)
 │   │   └── actions/
-│   │       ├── polls.ts            # vote, proposePoll, updateUserLocation
+│   │       ├── polls.ts            # vote (Server Action) — proposePoll/updateUserLocation stubées (client direct)
 │   │       └── admin.ts            # validate/archive/reactivate/delete/updatePoll/getPollWithOptions/updatePollOptions + CRUD tags
 │   └── middleware.ts               # /admin/login bypass + admin guard
 ├── supabase/
 │   ├── migrations/             # Migrations SQL versionnées
 │   │   ├── 001_schema.sql
 │   │   ├── 002_rls.sql
-│   │   └── 003_triggers.sql
+│   │   ├── 003_triggers.sql
+│   │   └── 004_rls_anon_proposals.sql  # RLS INSERT polls/options pour authenticated
 │   └── seed.sql                # Tags initiaux SPM
 ├── public/
 ├── .env.local                  # Variables locales (ne pas commiter)
@@ -794,9 +801,17 @@ type ActionResult =
 
 8. **PollEditor `isEditable`** : calculé côté serveur dans `getPollWithOptions()`. Un sondage est éditable uniquement si `total_votes === 0 && status !== 'archived'`. Ce flag détermine si PollEditor affiche le formulaire complet ou la vue lecture seule (bannière ambrée + champs non interactifs).
 
-6. **Géo-couleurs** : les 3 couleurs SP/Miq/Ext sont sémantiques et ne doivent pas être utilisées pour autre chose dans l'UI.
+9. **Géo-couleurs** : les 3 couleurs SP/Miq/Ext sont sémantiques et ne doivent pas être utilisées pour autre chose dans l'UI.
+
+10. **SessionProvider** : crée la session anonyme Supabase côté CLIENT au montage (`signInAnonymously()`). Le cookie est posé dans le browser et lu par les Server Actions. Ne JAMAIS appeler `signInAnonymously()` dans un Server Action — le cookie ne se propage pas au navigateur.
+
+11. **Propositions de sondage** : passent par l'API Route `/api/propose` (service role key, bypass RLS) et non par un Server Action. Le formulaire `/proposer` fait un `fetch('/api/propose')` directement.
+
+12. **GeoContext persist** : utilise `supabase.from('profiles').update()` via le client browser, pas `upsert` (pas de policy RLS INSERT sur profiles). Le profil est créé par le trigger `handle_new_user`, seul `update` est nécessaire.
+
+13. **PollCardLive** : version Client Component de PollCard avec `useRealtimeVotes` + animation `voxPulse` (pulse 800ms sur la barre qui reçoit un vote). Utilisé sur la page d'accueil au lieu de PollCard.
 
 ---
 
-*VoxSPM · claude.md v1.0 · Avril 2026*  
+*VoxSPM · claude.md v1.1 · Avril 2026*  
 *Lire ce fichier avant chaque session Claude Code.*

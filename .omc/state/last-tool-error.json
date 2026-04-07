@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd \\\"C:/Users/Pc/Downloads/Claude Code - Website - VOXSPM/voxspm\\\" && git add CLAUDE.md && git commit -m \\\"$(cat <<'EOF'\\ndocs: mise à jour CLAUDE.md — stack, architecture, design system\\n...",
-  "error": "Exit code 1\nOn branch main\nYour branch is up to date with 'origin/main'.\n\nnothing to commit, working tree clean",
-  "timestamp": "2026-04-06T19:51:05.748Z",
-  "retry_count": 1
-}

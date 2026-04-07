@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface HeroProps {
   activePolls: number
@@ -23,7 +24,22 @@ export default function Hero({ activePolls, totalVotes, completedPolls }: HeroPr
         }}
       />
 
-      <div className="relative max-w-[640px] mx-auto text-center flex flex-col items-center gap-6">
+      <div className="relative max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-12">
+
+        {/* Illustration décorative — desktop only, côté droit, contenue dans son espace */}
+        <div className="hidden md:block w-[40%] shrink-0 order-2 overflow-hidden relative">
+          <Image
+            src="/illustrations/hero-pattern.svg"
+            alt=""
+            width={600}
+            height={600}
+            priority
+            aria-hidden="true"
+            className="w-full max-w-full h-auto object-contain max-h-[500px]"
+          />
+        </div>
+
+      <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start gap-6 order-1">
         {/* 🎨 Intent: eyebrow pill avec point vert pulsant */}
         <div
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-[var(--radius-pill)] text-xs font-medium"
@@ -134,6 +150,7 @@ export default function Hero({ activePolls, totalVotes, completedPolls }: HeroPr
             </div>
           ))}
         </div>
+      </div>
       </div>
     </section>
   )

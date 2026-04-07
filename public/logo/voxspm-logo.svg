@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40">
+  <!-- Symbole : 3 cercles concentriques décalés -->
+  <circle cx="16" cy="20" r="14" fill="#1A6FB5" opacity="0.9"/>
+  <circle cx="22" cy="20" r="10" fill="#0C9A78" opacity="0.85"/>
+  <circle cx="28" cy="20" r="6" fill="#6B4FA0" opacity="0.95"/>
+  <!-- Wordmark -->
+  <text x="48" y="27" font-family="'Instrument Serif', Georgia, serif" font-size="24" fill="#0A1628" letter-spacing="-0.5">VoxSPM</text>
+</svg>

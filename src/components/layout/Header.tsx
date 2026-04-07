@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useGeo } from '@/lib/context/GeoContext'
 
 const locationLabels: Record<string, { short: string; emoji: string }> = {
@@ -30,19 +31,15 @@ export default function Header({ onOpenGeoModal }: HeaderProps) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[60px] flex items-center justify-between">
         {/* 🎨 Intent: logo icône dans carré dégradé + typo Instrument Serif */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm"
-            style={{ background: 'linear-gradient(135deg, var(--ocean), var(--miq))' }}
-          >
-            🗳️
-          </div>
-          <span
-            className="text-xl tracking-tight"
-            style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)' }}
-          >
-            VoxSPM
-          </span>
+        <Link href="/" className="flex items-center group">
+          <Image
+            src="/logo/voxspm-logo.svg"
+            alt="VoxSPM"
+            width={140}
+            height={32}
+            priority
+            className="h-8 w-auto"
+          />
         </Link>
 
         <div className="flex items-center gap-3">
