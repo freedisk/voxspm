@@ -153,15 +153,15 @@
   },
   "hotPaths": [
     {
-      "path": "prompt.md",
-      "accessCount": 3,
-      "lastAccessed": 1775663809579,
+      "path": "src\\app\\poll\\[slug]\\opengraph-image.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1775664247629,
       "type": "file"
     },
     {
-      "path": "src\\app\\poll\\[slug]\\opengraph-image.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1775663823432,
+      "path": "prompt.md",
+      "accessCount": 4,
+      "lastAccessed": 1775664235809,
       "type": "file"
     },
     {

@@ -7,12 +7,13 @@ export const alt = 'VoxSPM — Sondage citoyen';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default async function Image({ params }: { params: { slug: string } }) {
+export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const supabase = await createClient();
   const { data: poll } = await supabase
     .from('polls')
     .select('question, slug, poll_tags(tags(slug, name))')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single();
 
   // Fallback si sondage introuvable
