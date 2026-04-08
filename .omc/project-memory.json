@@ -153,15 +153,15 @@
   },
   "hotPaths": [
     {
-      "path": "src\\app\\proposer\\page.tsx",
-      "accessCount": 12,
-      "lastAccessed": 1775670696950,
+      "path": "prompt.md",
+      "accessCount": 13,
+      "lastAccessed": 1775689731873,
       "type": "file"
     },
     {
-      "path": "prompt.md",
+      "path": "src\\app\\proposer\\page.tsx",
       "accessCount": 12,
-      "lastAccessed": 1775677204087,
+      "lastAccessed": 1775670696950,
       "type": "file"
     },
     {
@@ -183,6 +183,12 @@
       "type": "file"
     },
     {
+      "path": "",
+      "accessCount": 6,
+      "lastAccessed": 1775689750617,
+      "type": "directory"
+    },
+    {
       "path": "src\\app\\poll\\[slug]\\opengraph-image.tsx",
       "accessCount": 5,
       "lastAccessed": 1775664247629,
@@ -201,6 +207,12 @@
       "type": "file"
     },
     {
+      "path": "src\\components\\layout\\Hero.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1775689850446,
+      "type": "file"
+    },
+    {
       "path": "src\\components\\pages\\HomeClient.tsx",
       "accessCount": 4,
       "lastAccessed": 1775668380501,
@@ -211,12 +223,6 @@
       "accessCount": 4,
       "lastAccessed": 1775676329725,
       "type": "file"
-    },
-    {
-      "path": "",
-      "accessCount": 3,
-      "lastAccessed": 1775669460651,
-      "type": "directory"
     },
     {
       "path": "docs\\ROADMAP.md",
@@ -282,6 +288,24 @@
       "path": "supabase\\migrations\\20260408120000_add_user_id_to_polls.sql",
       "accessCount": 1,
       "lastAccessed": 1775670165701,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775689736617,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\hooks\\useRealtimeVotes.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775689749281,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\hooks\\useLiveStats.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775689826626,
       "type": "file"
     }
   ],

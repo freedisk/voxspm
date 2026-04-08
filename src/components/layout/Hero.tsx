@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
+import { useLiveStats } from '@/lib/hooks/useLiveStats'
 
 interface HeroProps {
   activePolls: number
@@ -8,6 +11,8 @@ interface HeroProps {
 }
 
 export default function Hero({ activePolls, totalVotes, completedPolls }: HeroProps) {
+  // Valeurs initiales SSR passées en props — pas de flash à 0 au mount
+  const stats = useLiveStats({ totalVotes, activePolls, completedPolls })
   return (
     // 🎨 Intent: hero section avec gradient subtil + radial glow océan en haut
     <section
@@ -57,7 +62,7 @@ export default function Hero({ activePolls, totalVotes, completedPolls }: HeroPr
               animation: 'pulse-dot 2s ease-in-out infinite',
             }}
           />
-          {activePolls} sondage{activePolls > 1 ? 's' : ''} en cours
+          {stats.activePolls} sondage{stats.activePolls > 1 ? 's' : ''} en cours
         </div>
 
         {/* 🎨 Intent: titre Instrument Serif avec "l'archipel" en italic océan */}
@@ -126,9 +131,9 @@ export default function Hero({ activePolls, totalVotes, completedPolls }: HeroPr
           style={{ borderColor: 'var(--border)' }}
         >
           {[
-            { value: totalVotes, label: 'votes exprimés' },
-            { value: completedPolls, label: 'sondages réalisés' },
-            { value: activePolls, label: 'en cours' },
+            { value: stats.totalVotes, label: 'votes exprimés' },
+            { value: stats.completedPolls, label: 'sondages réalisés' },
+            { value: stats.activePolls, label: 'en cours' },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <div
