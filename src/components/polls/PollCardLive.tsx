@@ -66,6 +66,7 @@ interface PollCardData {
 
 interface PollCardLiveProps extends PollCardData {
   status?: string
+  isNew?: boolean
   onParticiper?: (poll: PollCardData) => void
 }
 
@@ -90,6 +91,7 @@ export default function PollCardLive({
   votes_miq,
   votes_ext,
   status = 'active',
+  isNew = false,
   onParticiper,
 }: PollCardLiveProps) {
   const [pulsingIds, setPulsingIds] = useState<Set<string>>(new Set())
@@ -147,13 +149,23 @@ export default function PollCardLive({
 
   return (
     <div
-      className="poll-card-hover rounded-2xl border overflow-hidden"
+      className="poll-card-hover rounded-2xl border overflow-hidden relative"
       style={{
         background: 'var(--white)',
         borderColor: 'var(--border)',
         boxShadow: 'var(--shadow-sm)',
       }}
     >
+      {/* Badge éphémère — visible 5s après activation admin pending→active */}
+      {isNew && (
+        <span
+          className="absolute top-3 right-3 z-10 animate-pulse inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-white"
+          style={{ background: '#1A6FB5' }}
+        >
+          ✨ Nouveau
+        </span>
+      )}
+
       <div className="p-6 sm:p-8">
         {/* 1. LIGNE TAGS */}
         {tags.length > 0 && (

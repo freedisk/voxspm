@@ -6,6 +6,7 @@ import TagFilter from '@/components/polls/TagFilter'
 import PollCardLive from '@/components/polls/PollCardLive'
 import PollModal, { type ModalPoll } from '@/components/polls/PollModal'
 import WelcomeModal from '@/components/pages/WelcomeModal'
+import { useLivePolls, type Poll } from '@/lib/hooks/useLivePolls'
 
 interface Tag {
   id: string
@@ -15,28 +16,6 @@ interface Tag {
   icon: string
   order_index: number
   active_polls_count: number
-}
-
-interface PollOption {
-  id: string
-  text: string
-  votes_count: number
-  order_index: number
-}
-
-interface Poll {
-  id: string
-  slug: string
-  question: string
-  description: string | null
-  total_votes: number
-  proposed_at: string
-  proposer_name: string | null
-  votes_sp: number
-  votes_miq: number
-  votes_ext: number
-  tags: Tag[]
-  options: PollOption[]
 }
 
 interface HomeClientProps {
@@ -49,8 +28,27 @@ export default function HomeClient({ tags, activeTagSlugs, polls: initialPolls }
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Owner des polls — initialisé depuis les props serveur, mis à jour optimistiquement après un vote
-  const [polls, setPolls] = useState<Poll[]>(initialPolls)
+  // Badge éphémère "Nouveau" — IDs de polls fraîchement activés, auto-retiré après 5s
+  const [newPollIds, setNewPollIds] = useState<Set<string>>(new Set())
+
+  // Appelé par useLivePolls quand un sondage pending→active arrive en Realtime
+  const handleNewPoll = useCallback((pollId: string) => {
+    setNewPollIds((prev) => {
+      const next = new Set(prev)
+      next.add(pollId)
+      return next
+    })
+    setTimeout(() => {
+      setNewPollIds((prev) => {
+        const next = new Set(prev)
+        next.delete(pollId)
+        return next
+      })
+    }, 5000)
+  }, [])
+
+  // Owner des polls — initialisé depuis les props serveur, synchronisé Realtime, mis à jour optimistiquement après un vote
+  const [polls, setPolls] = useLivePolls(initialPolls, handleNewPoll)
   // Stocke l'id du poll ouvert plutôt que l'objet, pour toujours pointer vers la version fraîche du state
   const [modalPollId, setModalPollId] = useState<string | null>(null)
 
@@ -199,6 +197,7 @@ export default function HomeClient({ tags, activeTagSlugs, polls: initialPolls }
               votes_sp={poll.votes_sp}
               votes_miq={poll.votes_miq}
               votes_ext={poll.votes_ext}
+              isNew={newPollIds.has(poll.id)}
               onParticiper={openModal}
             />
           ))}

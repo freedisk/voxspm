@@ -154,14 +154,20 @@
   "hotPaths": [
     {
       "path": "prompt.md",
-      "accessCount": 14,
-      "lastAccessed": 1775690278825,
+      "accessCount": 15,
+      "lastAccessed": 1775691128079,
       "type": "file"
     },
     {
       "path": "src\\app\\proposer\\page.tsx",
       "accessCount": 12,
       "lastAccessed": 1775670696950,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\pages\\HomeClient.tsx",
+      "accessCount": 8,
+      "lastAccessed": 1775691519226,
       "type": "file"
     },
     {
@@ -189,6 +195,12 @@
       "type": "directory"
     },
     {
+      "path": "src\\components\\polls\\PollCardLive.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1775691527785,
+      "type": "file"
+    },
+    {
       "path": "src\\app\\poll\\[slug]\\opengraph-image.tsx",
       "accessCount": 5,
       "lastAccessed": 1775664247629,
@@ -213,12 +225,6 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\pages\\HomeClient.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1775668380501,
-      "type": "file"
-    },
-    {
       "path": "CLAUDE.md",
       "accessCount": 4,
       "lastAccessed": 1775676329725,
@@ -228,6 +234,12 @@
       "path": "docs\\ROADMAP.md",
       "accessCount": 3,
       "lastAccessed": 1775676315330,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\hooks\\useLiveStats.ts",
+      "accessCount": 3,
+      "lastAccessed": 1775691134254,
       "type": "file"
     },
     {
@@ -255,9 +267,9 @@
       "type": "file"
     },
     {
-      "path": "src\\lib\\hooks\\useLiveStats.ts",
+      "path": "src\\app\\page.tsx",
       "accessCount": 2,
-      "lastAccessed": 1775690300325,
+      "lastAccessed": 1775691208384,
       "type": "file"
     },
     {
@@ -297,15 +309,27 @@
       "type": "file"
     },
     {
-      "path": "src\\app\\page.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775689736617,
-      "type": "file"
-    },
-    {
       "path": "src\\lib\\hooks\\useRealtimeVotes.ts",
       "accessCount": 1,
       "lastAccessed": 1775689749281,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\supabase\\client.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775691136443,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\actions\\polls.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775691157122,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\hooks\\useLivePolls.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775691437585,
       "type": "file"
     }
   ],
