@@ -154,8 +154,8 @@
   "hotPaths": [
     {
       "path": "prompt.md",
-      "accessCount": 13,
-      "lastAccessed": 1775689731873,
+      "accessCount": 14,
+      "lastAccessed": 1775690278825,
       "type": "file"
     },
     {
@@ -255,6 +255,12 @@
       "type": "file"
     },
     {
+      "path": "src\\lib\\hooks\\useLiveStats.ts",
+      "accessCount": 2,
+      "lastAccessed": 1775690300325,
+      "type": "file"
+    },
+    {
       "path": "src\\lib\\og\\geo-color.ts",
       "accessCount": 1,
       "lastAccessed": 1775663431085,
@@ -300,12 +306,6 @@
       "path": "src\\lib\\hooks\\useRealtimeVotes.ts",
       "accessCount": 1,
       "lastAccessed": 1775689749281,
-      "type": "file"
-    },
-    {
-      "path": "src\\lib\\hooks\\useLiveStats.ts",
-      "accessCount": 1,
-      "lastAccessed": 1775689826626,
       "type": "file"
     }
   ],
