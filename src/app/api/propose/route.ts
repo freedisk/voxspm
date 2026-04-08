@@ -1,10 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
+import { MAX_PENDING_PROPOSALS } from '@/lib/constants'
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { question, proposer_name, options, tag_ids } = body
+
+    // Vérification rate limit : max MAX_PENDING_PROPOSALS propositions pending par user
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+      const { count, error: countError } = await supabaseAdmin
+        .from('polls')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+
+      if (countError) {
+        return NextResponse.json(
+          { error: 'Erreur lors de la vérification des propositions' },
+          { status: 500 }
+        )
+      }
+
+      if ((count ?? 0) >= MAX_PENDING_PROPOSALS) {
+        return NextResponse.json(
+          {
+            error: "Tu as atteint la limite de 3 propositions en attente de modération. Merci de patienter qu'elles soient traitées avant d'en proposer de nouvelles.",
+            code: 'RATE_LIMIT_EXCEEDED',
+          },
+          { status: 429 }
+        )
+      }
+    }
 
     // Validation minimale
     if (!question || question.length < 10) {
@@ -27,6 +58,7 @@ export async function POST(req: NextRequest) {
         question,
         proposer_name: proposer_name || null,
         status: 'pending',
+        user_id: user?.id ?? null,
       })
       .select('id')
       .single()

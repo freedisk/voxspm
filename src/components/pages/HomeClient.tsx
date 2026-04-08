@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import TagFilter from '@/components/polls/TagFilter'
 import PollCardLive from '@/components/polls/PollCardLive'
 import PollModal, { type ModalPoll } from '@/components/polls/PollModal'
+import WelcomeModal from '@/components/pages/WelcomeModal'
 
 interface Tag {
   id: string
@@ -52,6 +53,29 @@ export default function HomeClient({ tags, activeTagSlugs, polls: initialPolls }
   const [polls, setPolls] = useState<Poll[]>(initialPolls)
   // Stocke l'id du poll ouvert plutôt que l'objet, pour toujours pointer vers la version fraîche du state
   const [modalPollId, setModalPollId] = useState<string | null>(null)
+
+  const [welcomeOpen, setWelcomeOpen] = useState(false)
+
+  // Première visite : ouvre la modale si jamais vue
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const seen = window.localStorage.getItem('voxspm_welcome_seen')
+    if (!seen) {
+      setWelcomeOpen(true)
+    }
+  }, [])
+
+  // Permet de rouvrir la modale depuis le Footer via un custom event
+  useEffect(() => {
+    const handler = () => setWelcomeOpen(true)
+    window.addEventListener('voxspm:open-welcome', handler)
+    return () => window.removeEventListener('voxspm:open-welcome', handler)
+  }, [])
+
+  const handleCloseWelcome = () => {
+    window.localStorage.setItem('voxspm_welcome_seen', '1')
+    setWelcomeOpen(false)
+  }
 
   // Source de vérité de la modale — toujours recalculée depuis le state polls à jour
   const modalPoll = useMemo(
@@ -142,6 +166,8 @@ export default function HomeClient({ tags, activeTagSlugs, polls: initialPolls }
 
   return (
     <>
+      <WelcomeModal isOpen={welcomeOpen} onClose={handleCloseWelcome} />
+
       <TagFilter
         tags={tags}
         activeTagSlugs={activeTagSlugs}

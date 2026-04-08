@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 
 export default function Footer() {
@@ -32,6 +34,13 @@ export default function Footer() {
 
           {/* Liens */}
           <div className="flex items-center gap-6">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('voxspm:open-welcome'))}
+              className="text-sm hover:text-white transition-colors duration-200"
+            >
+              À propos
+            </button>
             <Link
               href="/proposer"
               className="text-sm hover:text-white transition-colors duration-200"

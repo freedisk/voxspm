@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { Clock } from 'lucide-react'
 import { z } from 'zod'
 import Button from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
@@ -34,6 +35,29 @@ export default function ProposerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [checkState, setCheckState] = useState<'loading' | 'allowed' | 'blocked'>('loading')
+  const [pendingCount, setPendingCount] = useState(0)
+
+  const checkLimit = async () => {
+    try {
+      const res = await fetch('/api/propose/check-limit')
+      const data = await res.json()
+      if (data.canPropose) {
+        setCheckState('allowed')
+      } else {
+        setCheckState('blocked')
+      }
+      setPendingCount(data.pendingCount ?? 0)
+    } catch {
+      // Fail-open : en cas d'erreur réseau, on laisse le serveur bloquer
+      setCheckState('allowed')
+    }
+  }
+
+  useEffect(() => {
+    checkLimit()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     async function fetchTags() {
@@ -96,6 +120,13 @@ export default function ProposerPage() {
       })
 
       const result = await response.json()
+
+      if (response.status === 429 && result.code === 'RATE_LIMIT_EXCEEDED') {
+        setCheckState('blocked')
+        setPendingCount(3)
+        return
+      }
+
       if (!response.ok) throw new Error(result.error)
 
       setSuccess(true)
@@ -103,12 +134,48 @@ export default function ProposerPage() {
       setProposerName('')
       setOptions(['', ''])
       setSelectedTagIds([])
+      await checkLimit()
     } catch (err) {
       console.error('proposePoll failed:', err)
       setError('Une erreur est survenue. Réessayez.')
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (checkState === 'loading') {
+    return (
+      <div className="max-w-[480px] mx-auto text-center py-20">
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Vérification…</p>
+      </div>
+    )
+  }
+
+  if (checkState === 'blocked') {
+    return (
+      <div className="max-w-xl mx-auto mt-12 p-8 bg-white rounded-2xl shadow-sm border border-slate-200">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
+            <Clock className="w-5 h-5 text-amber-600" />
+          </div>
+          <h2 className="font-['Instrument_Serif'] text-2xl text-slate-900">
+            Tu as déjà 3 propositions en attente
+          </h2>
+        </div>
+        <p className="text-sm text-slate-600 leading-relaxed">
+          Pour garder VoxSPM constructif, chaque citoyen peut avoir jusqu'à
+          3 sondages en attente de modération en même temps. Dès qu'un de
+          tes sondages est validé ou refusé, tu pourras en proposer un nouveau.
+        </p>
+        <div className="mt-6">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center bg-[#1A6FB5] hover:bg-[#155a94] text-white font-medium rounded-full py-2.5 px-6 transition-colors">
+            Retour à l'accueil
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   if (success) {

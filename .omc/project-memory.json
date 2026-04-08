@@ -153,16 +153,46 @@
   },
   "hotPaths": [
     {
+      "path": "src\\app\\proposer\\page.tsx",
+      "accessCount": 12,
+      "lastAccessed": 1775670696950,
+      "type": "file"
+    },
+    {
+      "path": "prompt.md",
+      "accessCount": 8,
+      "lastAccessed": 1775670666178,
+      "type": "file"
+    },
+    {
       "path": "src\\app\\poll\\[slug]\\opengraph-image.tsx",
       "accessCount": 5,
       "lastAccessed": 1775664247629,
       "type": "file"
     },
     {
-      "path": "prompt.md",
-      "accessCount": 4,
-      "lastAccessed": 1775664235809,
+      "path": "src\\app\\api\\propose\\route.ts",
+      "accessCount": 5,
+      "lastAccessed": 1775670178247,
       "type": "file"
+    },
+    {
+      "path": "src\\components\\pages\\HomeClient.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1775668380501,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\layout\\Footer.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1775668393877,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 3,
+      "lastAccessed": 1775669460651,
+      "type": "directory"
     },
     {
       "path": "src\\app\\poll\\[slug]\\page.tsx",
@@ -198,6 +228,30 @@
       "path": "src\\app\\opengraph-image.tsx",
       "accessCount": 1,
       "lastAccessed": 1775663441159,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\pages\\WelcomeModal.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775668358426,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\constants.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775669443935,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\api\\propose\\check-limit\\route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775669454392,
+      "type": "file"
+    },
+    {
+      "path": "supabase\\migrations\\20260408120000_add_user_id_to_polls.sql",
+      "accessCount": 1,
+      "lastAccessed": 1775670165701,
       "type": "file"
     }
   ],
