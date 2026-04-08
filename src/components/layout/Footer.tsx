@@ -42,6 +42,12 @@ export default function Footer() {
               À propos
             </button>
             <Link
+              href="/contact"
+              className="text-sm hover:text-white transition-colors duration-200"
+            >
+              Contact
+            </Link>
+            <Link
               href="/proposer"
               className="text-sm hover:text-white transition-colors duration-200"
             >
