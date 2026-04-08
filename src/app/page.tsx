@@ -35,13 +35,8 @@ interface PollWithData {
   options: PollOption[]
 }
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tag?: string | string[] }>
-}) {
+export default async function HomePage() {
   const supabase = await createClient()
-  const params = await searchParams
 
   // Récupération des tags et du comptage des sondages actifs par tag en parallèle
   const [{ data: rawTagsData }, { data: tagCountsData }] = await Promise.all([
@@ -69,13 +64,6 @@ export default async function HomePage({
         a.name.localeCompare(b.name, 'fr')
     )
 
-  const rawTag = params.tag
-  const activeTagSlugs: string[] = Array.isArray(rawTag)
-    ? rawTag
-    : rawTag
-      ? [rawTag]
-      : []
-
   // Enrichi : inclut options pour afficher les résultats dans PollCard
   const { data: rawPolls } = await supabase
     .from('polls')
@@ -99,12 +87,6 @@ export default async function HomePage({
     options: (poll.options as PollOption[]) ?? [],
   }))
 
-  if (activeTagSlugs.length > 0) {
-    polls = polls.filter((poll) =>
-      poll.tags.some((tag) => activeTagSlugs.includes(tag.slug))
-    )
-  }
-
   const totalVotes = polls.reduce((sum, p) => sum + p.total_votes, 0)
   const activePolls = polls.length
 
@@ -124,7 +106,6 @@ export default async function HomePage({
       <div id="sondages" className="pt-8">
         <HomeClient
           tags={allTags}
-          activeTagSlugs={activeTagSlugs}
           polls={polls}
         />
       </div>

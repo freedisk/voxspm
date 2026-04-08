@@ -154,8 +154,14 @@
   "hotPaths": [
     {
       "path": "prompt.md",
-      "accessCount": 15,
-      "lastAccessed": 1775691128079,
+      "accessCount": 16,
+      "lastAccessed": 1775691752770,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\pages\\HomeClient.tsx",
+      "accessCount": 13,
+      "lastAccessed": 1775691898616,
       "type": "file"
     },
     {
@@ -165,9 +171,9 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\pages\\HomeClient.tsx",
+      "path": "src\\app\\page.tsx",
       "accessCount": 8,
-      "lastAccessed": 1775691519226,
+      "lastAccessed": 1775691897561,
       "type": "file"
     },
     {
@@ -267,12 +273,6 @@
       "type": "file"
     },
     {
-      "path": "src\\app\\page.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1775691208384,
-      "type": "file"
-    },
-    {
       "path": "src\\lib\\og\\geo-color.ts",
       "accessCount": 1,
       "lastAccessed": 1775663431085,
@@ -330,6 +330,12 @@
       "path": "src\\lib\\hooks\\useLivePolls.ts",
       "accessCount": 1,
       "lastAccessed": 1775691437585,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\polls\\TagFilter.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775691765886,
       "type": "file"
     }
   ],

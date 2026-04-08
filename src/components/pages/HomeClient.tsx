@@ -20,11 +20,10 @@ interface Tag {
 
 interface HomeClientProps {
   tags: Tag[]
-  activeTagSlugs: string[]
   polls: Poll[]
 }
 
-export default function HomeClient({ tags, activeTagSlugs, polls: initialPolls }: HomeClientProps) {
+export default function HomeClient({ tags, polls: initialPolls }: HomeClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -49,6 +48,21 @@ export default function HomeClient({ tags, activeTagSlugs, polls: initialPolls }
 
   // Owner des polls — initialisé depuis les props serveur, synchronisé Realtime, mis à jour optimistiquement après un vote
   const [polls, setPolls] = useLivePolls(initialPolls, handleNewPoll)
+
+  // Tags actifs depuis l'URL — réactif via useSearchParams (format : ?tag=slug1&tag=slug2)
+  const activeTagSlugs = useMemo(
+    () => searchParams.getAll('tag'),
+    [searchParams]
+  )
+
+  // Filtrage local (OR) : dérivé de polls, ne casse pas la synchro Realtime
+  const filteredPolls = useMemo(() => {
+    if (activeTagSlugs.length === 0) return polls
+    return polls.filter((poll) =>
+      poll.tags.some((tag) => activeTagSlugs.includes(tag.slug))
+    )
+  }, [polls, activeTagSlugs])
+
   // Stocke l'id du poll ouvert plutôt que l'objet, pour toujours pointer vers la version fraîche du state
   const [modalPollId, setModalPollId] = useState<string | null>(null)
 
@@ -179,10 +193,17 @@ export default function HomeClient({ tags, activeTagSlugs, polls: initialPolls }
         >
           Aucun sondage en cours — revenez bientôt !
         </p>
+      ) : filteredPolls.length === 0 ? (
+        <p
+          className="text-center py-16 text-sm"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Aucun sondage ne correspond à ce filtre.
+        </p>
       ) : (
         // 🎨 Intent: grille 3 cols desktop / 2 cols tablette / 1 col mobile, max-w-6xl
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 max-w-6xl mx-auto px-4">
-          {polls.map((poll) => (
+          {filteredPolls.map((poll) => (
             <PollCardLive
               key={poll.id}
               id={poll.id}
