@@ -92,3 +92,13 @@ body {
   box-shadow: var(--shadow-xl) !important;
   border-color: rgba(26,111,181,0.15) !important;
 }
+
+/* 🎨 Intent: pulse box-shadow sur les barres dont le % vient de changer en Realtime */
+@keyframes vote-pulse-anim {
+  0%   { box-shadow: 0 0 0 0 rgba(26, 111, 181, 0.55); background-color: rgba(26, 111, 181, 0.08); }
+  40%  { box-shadow: 0 0 0 10px rgba(26, 111, 181, 0.28); background-color: rgba(26, 111, 181, 0.04); }
+  100% { box-shadow: 0 0 0 0 rgba(26, 111, 181, 0); background-color: transparent; }
+}
+.vote-pulse {
+  animation: vote-pulse-anim 1400ms ease-out;
+}

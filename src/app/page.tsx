@@ -10,6 +10,8 @@ interface Tag {
   slug: string
   color: string
   icon: string
+  order_index: number
+  active_polls_count: number
 }
 
 interface PollOption {
@@ -41,10 +43,31 @@ export default async function HomePage({
   const supabase = await createClient()
   const params = await searchParams
 
-  const { data: allTags } = await supabase
-    .from('tags')
-    .select('*')
-    .order('order_index')
+  // Récupération des tags et du comptage des sondages actifs par tag en parallèle
+  const [{ data: rawTagsData }, { data: tagCountsData }] = await Promise.all([
+    supabase.from('tags').select('*').order('order_index'),
+    supabase
+      .from('poll_tags')
+      .select('tag_id, polls!inner(status)')
+      .eq('polls.status', 'active'),
+  ])
+
+  // Agrégation : combien de sondages actifs par tag_id
+  const tagCountsMap: Record<string, number> = {}
+  for (const row of (tagCountsData ?? [])) {
+    const tagId = (row as { tag_id: string }).tag_id
+    tagCountsMap[tagId] = (tagCountsMap[tagId] ?? 0) + 1
+  }
+
+  // Enrichissement + tri : décroissant par sondages actifs, puis order_index, puis nom FR
+  const allTags: Tag[] = (rawTagsData ?? [])
+    .map((tag) => ({ ...tag, active_polls_count: tagCountsMap[tag.id] ?? 0 }))
+    .sort(
+      (a, b) =>
+        (b.active_polls_count - a.active_polls_count) ||
+        (a.order_index - b.order_index) ||
+        a.name.localeCompare(b.name, 'fr')
+    )
 
   const rawTag = params.tag
   const activeTagSlugs: string[] = Array.isArray(rawTag)
@@ -66,7 +89,7 @@ export default async function HomePage({
     .order('proposed_at', { ascending: false })
     .limit(50)
 
-  const tagMap = new Map((allTags ?? []).map((t) => [t.id, t]))
+  const tagMap = new Map(allTags.map((t) => [t.id, t]))
 
   let polls: PollWithData[] = (rawPolls ?? []).map((poll) => ({
     ...poll,
@@ -100,7 +123,7 @@ export default async function HomePage({
 
       <div id="sondages" className="pt-8">
         <HomeClient
-          tags={allTags ?? []}
+          tags={allTags}
           activeTagSlugs={activeTagSlugs}
         />
 
@@ -112,8 +135,8 @@ export default async function HomePage({
             Aucun sondage en cours — revenez bientôt !
           </p>
         ) : (
-          // 🎨 Intent: 1 colonne pleine largeur, max-w-3xl centré pour lisibilité
-          <div className="flex flex-col gap-6 mt-6 max-w-3xl mx-auto">
+          // 🎨 Intent: grille 3 cols desktop / 2 cols tablette / 1 col mobile, max-w-6xl
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 max-w-6xl mx-auto px-4">
             {polls.map((poll) => (
               <PollCardLive
                 key={poll.id}

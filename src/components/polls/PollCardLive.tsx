@@ -5,6 +5,36 @@ import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import { useRealtimeVotes } from '@/lib/hooks/useRealtimeVotes'
 
+function AnimatedPercent({ value }: { value: number }) {
+  const [display, setDisplay] = useState(value)
+  const rafRef = useRef<number | null>(null)
+  const startRef = useRef<number>(0)
+  const fromRef = useRef<number>(value)
+
+  useEffect(() => {
+    if (display === value) return
+    fromRef.current = display
+    startRef.current = performance.now()
+    const duration = 1100
+    const tick = (now: number) => {
+      const elapsed = now - startRef.current
+      const t = Math.min(1, elapsed / duration)
+      // easeOutCubic
+      const eased = 1 - Math.pow(1 - t, 3)
+      const next = fromRef.current + (value - fromRef.current) * eased
+      setDisplay(next)
+      if (t < 1) rafRef.current = requestAnimationFrame(tick)
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
+  return <>{Math.round(display)}%</>
+}
+
 interface PollTag {
   id: string
   name: string
@@ -56,9 +86,9 @@ export default function PollCardLive({
   votes_ext,
   status = 'active',
 }: PollCardLiveProps) {
-  const [pulsedOptionId, setPulsedOptionId] = useState<string | null>(null)
-  // Ref pour détecter quelle option a changé entre deux renders du hook
-  const prevOptionsRef = useRef<PollOption[]>(options)
+  const [pulsingIds, setPulsingIds] = useState<Set<string>>(new Set())
+  // Ref pour détecter quelles barres ont changé entre deux renders (options + géo)
+  const prevPctsRef = useRef<Record<string, number>>({})
 
   const { options: liveOptions, pollGeo } = useRealtimeVotes(
     id,
@@ -69,23 +99,37 @@ export default function PollCardLive({
   const liveTotalVotes = pollGeo.total_votes
   const geoCounts = { sp: pollGeo.votes_sp, miq: pollGeo.votes_miq, ext: pollGeo.votes_ext }
 
-  // Détecter quelle option a reçu un vote → déclencher le pulse 800ms
+  // Détecter quelles barres (options + géo) ont changé → pulse 800ms
   useEffect(() => {
-    const prev = prevOptionsRef.current
-    const changed = liveOptions.find((opt) => {
-      const prevOpt = prev.find((p) => p.id === opt.id)
-      return prevOpt !== undefined && prevOpt.votes_count !== opt.votes_count
-    })
+    const prev = prevPctsRef.current
+    const total = pollGeo.total_votes || 1
+    const currentPcts: Record<string, number> = {}
+    const changed = new Set<string>()
 
-    if (changed) {
-      setPulsedOptionId(changed.id)
-      const timer = setTimeout(() => setPulsedOptionId(null), 800)
-      prevOptionsRef.current = liveOptions
-      return () => clearTimeout(timer)
+    // Pourcentages options
+    for (const opt of liveOptions) {
+      const pct = Math.round((opt.votes_count / total) * 100)
+      currentPcts[opt.id] = pct
+      if (prev[opt.id] !== undefined && prev[opt.id] !== pct) changed.add(opt.id)
     }
 
-    prevOptionsRef.current = liveOptions
-  }, [liveOptions])
+    // Pourcentages géo
+    const geoMap = { sp: pollGeo.votes_sp, miq: pollGeo.votes_miq, ext: pollGeo.votes_ext }
+    for (const [key, count] of Object.entries(geoMap)) {
+      const geoId = `geo-${key}`
+      const pct = Math.round((count / total) * 100)
+      currentPcts[geoId] = pct
+      if (prev[geoId] !== undefined && prev[geoId] !== pct) changed.add(geoId)
+    }
+
+    prevPctsRef.current = currentPcts
+
+    if (changed.size === 0) return
+
+    setPulsingIds(changed)
+    const timer = setTimeout(() => setPulsingIds(new Set()), 1400)
+    return () => clearTimeout(timer)
+  }, [liveOptions, pollGeo])
 
   const date = new Date(proposed_at).toLocaleDateString('fr-FR', {
     day: 'numeric',
@@ -131,13 +175,13 @@ export default function PollCardLive({
         <div className="flex flex-col gap-3">
           {sortedOptions.map((option) => {
             const pct = liveTotalVotes > 0 ? (option.votes_count / liveTotalVotes) * 100 : 0
-            const isPulsed = pulsedOptionId === option.id
+            const isPulsed = pulsingIds.has(option.id)
             return (
               <div key={option.id} className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-sm">
                   <span style={{ color: 'var(--text-primary)' }}>{option.text}</span>
                   <span className="tabular-nums text-xs shrink-0 ml-3" style={{ color: 'var(--text-muted)' }}>
-                    {Math.round(pct)}% · {option.votes_count}
+                    <AnimatedPercent value={pct} /> · {option.votes_count}
                   </span>
                 </div>
                 <div
@@ -145,12 +189,11 @@ export default function PollCardLive({
                   style={{ background: '#E8EDF5' }}
                 >
                   <div
-                    // vox-pulse déclenche l'animation keyframe définie dans globals.css
-                    className={`h-full rounded-full${isPulsed ? ' vox-pulse' : ''}`}
+                    className={`h-full rounded-full${isPulsed ? ' vote-pulse' : ''}`}
                     style={{
                       width: `${pct}%`,
                       background: '#1A6FB5',
-                      transition: 'width 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      transition: 'width 1100ms cubic-bezier(0.22, 1, 0.36, 1)',
                     }}
                   />
                 </div>
@@ -181,16 +224,16 @@ export default function PollCardLive({
                       {geo.label}
                     </span>
                     <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                      {count} ({Math.round(pct)}%)
+                      {count} (<AnimatedPercent value={pct} />)
                     </span>
                   </div>
                   <div className="h-1 rounded-full overflow-hidden" style={{ background: '#E8EDF5' }}>
                     <div
-                      className="h-full rounded-full"
+                      className={`h-full rounded-full${pulsingIds.has(`geo-${geo.key}`) ? ' vote-pulse' : ''}`}
                       style={{
                         width: `${Math.max(pct, 0)}%`,
                         background: geo.color,
-                        transition: 'width 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+                        transition: 'width 1100ms cubic-bezier(0.22, 1, 0.36, 1)',
                       }}
                     />
                   </div>
