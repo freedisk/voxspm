@@ -3,7 +3,7 @@ import Providers from '@/components/layout/Providers'
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://voxspm.vercel.app'),
+  metadataBase: new URL('https://voxspm.com'),
   title: {
     default: 'VoxSPM — Sondages citoyens de Saint-Pierre-et-Miquelon',
     template: '%s — VoxSPM',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     locale: 'fr_FR',
     title: 'VoxSPM — Sondages citoyens de Saint-Pierre-et-Miquelon',
     description: 'La plateforme de consultation publique citoyenne de l\'archipel.',
-    url: 'https://voxspm.vercel.app',
+    url: 'https://voxspm.com',
   },
   twitter: {
     card: 'summary_large_image',

@@ -160,8 +160,8 @@
     },
     {
       "path": "prompt.md",
-      "accessCount": 11,
-      "lastAccessed": 1775676166384,
+      "accessCount": 12,
+      "lastAccessed": 1775677204087,
       "type": "file"
     },
     {
@@ -174,6 +174,12 @@
       "path": "src\\components\\layout\\Footer.tsx",
       "accessCount": 6,
       "lastAccessed": 1775675375250,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\layout.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1775677250574,
       "type": "file"
     },
     {
@@ -222,12 +228,6 @@
       "path": "src\\app\\poll\\[slug]\\page.tsx",
       "accessCount": 2,
       "lastAccessed": 1775663456401,
-      "type": "file"
-    },
-    {
-      "path": "src\\app\\layout.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1775663461016,
       "type": "file"
     },
     {
