@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import { useRealtimeVotes } from '@/lib/hooks/useRealtimeVotes'
 
@@ -50,19 +49,24 @@ interface PollOption {
   order_index: number
 }
 
-interface PollCardLiveProps {
+interface PollCardData {
   id: string
   slug: string
   question: string
+  description: string | null
   total_votes: number
   proposed_at: string
   proposer_name: string | null
-  tags: PollTag[]
-  options: PollOption[]
   votes_sp: number
   votes_miq: number
   votes_ext: number
+  tags: PollTag[]
+  options: PollOption[]
+}
+
+interface PollCardLiveProps extends PollCardData {
   status?: string
+  onParticiper?: (poll: PollCardData) => void
 }
 
 // 🎨 Intent: couleurs géo fixes — non interchangeables
@@ -76,6 +80,7 @@ export default function PollCardLive({
   id,
   slug,
   question,
+  description = null,
   total_votes,
   proposed_at,
   proposer_name,
@@ -85,6 +90,7 @@ export default function PollCardLive({
   votes_miq,
   votes_ext,
   status = 'active',
+  onParticiper,
 }: PollCardLiveProps) {
   const [pulsingIds, setPulsingIds] = useState<Set<string>>(new Set())
   // Ref pour détecter quelles barres ont changé entre deux renders (options + géo)
@@ -263,8 +269,21 @@ export default function PollCardLive({
               </span>
             )}
 
-            <Link
-              href={`/poll/${slug}`}
+            <button
+              onClick={() => onParticiper?.({
+                id,
+                slug,
+                question,
+                description,
+                total_votes: liveTotalVotes,
+                proposed_at,
+                proposer_name: proposer_name ?? null,
+                votes_sp: pollGeo.votes_sp,
+                votes_miq: pollGeo.votes_miq,
+                votes_ext: pollGeo.votes_ext,
+                tags,
+                options: liveOptions,
+              })}
               className="
                 inline-flex items-center px-5 py-2
                 rounded-full text-sm font-medium text-white
@@ -274,7 +293,7 @@ export default function PollCardLive({
               style={{ background: '#1A6FB5' }}
             >
               Participer →
-            </Link>
+            </button>
           </div>
         </div>
       </div>

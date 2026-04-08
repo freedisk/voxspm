@@ -149,14 +149,38 @@
   "hotPaths": [
     {
       "path": "src\\components\\polls\\PollCardLive.tsx",
-      "accessCount": 16,
-      "lastAccessed": 1775656423162,
+      "accessCount": 23,
+      "lastAccessed": 1775657784046,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\polls\\PollModal.tsx",
+      "accessCount": 21,
+      "lastAccessed": 1775662641062,
       "type": "file"
     },
     {
       "path": "prompt.md",
-      "accessCount": 8,
-      "lastAccessed": 1775656556263,
+      "accessCount": 13,
+      "lastAccessed": 1775662617591,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\pages\\HomeClient.tsx",
+      "accessCount": 13,
+      "lastAccessed": 1775662641390,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\page.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1775657749904,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\globals.css",
+      "accessCount": 7,
+      "lastAccessed": 1775657609358,
       "type": "file"
     },
     {
@@ -166,21 +190,15 @@
       "type": "file"
     },
     {
-      "path": "src\\app\\globals.css",
-      "accessCount": 4,
-      "lastAccessed": 1775654646070,
-      "type": "file"
-    },
-    {
-      "path": "src\\app\\page.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1775656648822,
-      "type": "file"
-    },
-    {
       "path": "src\\components\\polls\\TagFilter.tsx",
       "accessCount": 3,
       "lastAccessed": 1775656661449,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\polls\\VoteForm.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775661374976,
       "type": "file"
     },
     {
@@ -214,9 +232,27 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\pages\\HomeClient.tsx",
+      "path": "src\\components\\polls\\ResultsBars.tsx",
       "accessCount": 1,
-      "lastAccessed": 1775656422882,
+      "lastAccessed": 1775657209354,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\polls\\GeoBreakdown.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775657210704,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\poll\\[slug]\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775657217454,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\context\\GeoContext.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775662293822,
       "type": "file"
     }
   ],

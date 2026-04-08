@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import PollCardLive from '@/components/polls/PollCardLive'
 import HomeClient from '@/components/pages/HomeClient'
 import Hero from '@/components/layout/Hero'
 
@@ -25,6 +24,7 @@ interface PollWithData {
   id: string
   slug: string
   question: string
+  description: string | null
   total_votes: number
   proposed_at: string
   proposer_name: string | null
@@ -80,7 +80,7 @@ export default async function HomePage({
   const { data: rawPolls } = await supabase
     .from('polls')
     .select(`
-      id, slug, question, total_votes, proposed_at, proposer_name,
+      id, slug, question, description, total_votes, proposed_at, proposer_name,
       votes_sp, votes_miq, votes_ext,
       poll_tags ( tag_id ),
       options ( id, text, votes_count, order_index )
@@ -125,36 +125,8 @@ export default async function HomePage({
         <HomeClient
           tags={allTags}
           activeTagSlugs={activeTagSlugs}
+          polls={polls}
         />
-
-        {polls.length === 0 ? (
-          <p
-            className="text-center py-16 text-sm"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            Aucun sondage en cours — revenez bientôt !
-          </p>
-        ) : (
-          // 🎨 Intent: grille 3 cols desktop / 2 cols tablette / 1 col mobile, max-w-6xl
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 max-w-6xl mx-auto px-4">
-            {polls.map((poll) => (
-              <PollCardLive
-                key={poll.id}
-                id={poll.id}
-                slug={poll.slug}
-                question={poll.question}
-                total_votes={poll.total_votes}
-                proposed_at={poll.proposed_at}
-                proposer_name={poll.proposer_name}
-                tags={poll.tags}
-                options={poll.options}
-                votes_sp={poll.votes_sp}
-                votes_miq={poll.votes_miq}
-                votes_ext={poll.votes_ext}
-              />
-            ))}
-          </div>
-        )}
       </div>
 
       {/* FAB mobile */}

@@ -1,8 +1,10 @@
 'use client'
 
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback } from 'react'
 import TagFilter from '@/components/polls/TagFilter'
+import PollCardLive from '@/components/polls/PollCardLive'
+import PollModal, { type ModalPoll } from '@/components/polls/PollModal'
 
 interface Tag {
   id: string
@@ -10,19 +12,54 @@ interface Tag {
   slug: string
   color: string
   icon: string
+  order_index: number
+  active_polls_count: number
+}
+
+interface PollOption {
+  id: string
+  text: string
+  votes_count: number
+  order_index: number
+}
+
+interface Poll {
+  id: string
+  slug: string
+  question: string
+  description: string | null
+  total_votes: number
+  proposed_at: string
+  proposer_name: string | null
+  votes_sp: number
+  votes_miq: number
+  votes_ext: number
+  tags: Tag[]
+  options: PollOption[]
 }
 
 interface HomeClientProps {
   tags: Tag[]
   activeTagSlugs: string[]
+  polls: Poll[]
 }
 
-// Composant client séparé pour gérer l'interactivité du TagFilter
-// Le filtrage réel se fait côté serveur via les query params
-export default function HomeClient({ tags, activeTagSlugs }: HomeClientProps) {
+export default function HomeClient({ tags, activeTagSlugs, polls: initialPolls }: HomeClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  // Owner des polls — initialisé depuis les props serveur, mis à jour optimistiquement après un vote
+  const [polls, setPolls] = useState<Poll[]>(initialPolls)
+  // Stocke l'id du poll ouvert plutôt que l'objet, pour toujours pointer vers la version fraîche du state
+  const [modalPollId, setModalPollId] = useState<string | null>(null)
+
+  // Source de vérité de la modale — toujours recalculée depuis le state polls à jour
+  const modalPoll = useMemo(
+    () => polls.find((p) => p.id === modalPollId) ?? null,
+    [polls, modalPollId]
+  )
+
+  // Gestion du filtre par tag — replace pour ne pas polluer l'historique
   const handleToggle = useCallback((slug: string) => {
     const params = new URLSearchParams(searchParams.toString())
 
@@ -38,15 +75,118 @@ export default function HomeClient({ tags, activeTagSlugs }: HomeClientProps) {
       }
     }
 
-    // Replace pour ne pas polluer l'historique avec chaque toggle de filtre
     router.replace(`/?${params.toString()}`)
   }, [router, searchParams])
 
+  // Ouvre la modale et met à jour l'URL via pushState (pas de navigation Next.js)
+  function openModal(poll: ModalPoll) {
+    setModalPollId(poll.id)
+    window.history.pushState({}, '', `/?poll=${poll.slug}`)
+  }
+
+  // Ferme la modale et nettoie l'URL
+  const closeModal = useCallback(() => {
+    setModalPollId(null)
+    window.history.replaceState({}, '', '/')
+  }, [])
+
+  // Mise à jour optimiste après vote réussi — appelé par PollModal avant onClose
+  const handleVoteRegistered = useCallback(
+    (pollId: string, optionId: string, location: 'saint_pierre' | 'miquelon' | 'exterieur') => {
+      setPolls((prev) => prev.map((p) => {
+        if (p.id !== pollId) return p
+        return {
+          ...p,
+          total_votes: p.total_votes + 1,
+          votes_sp:  location === 'saint_pierre' ? p.votes_sp  + 1 : p.votes_sp,
+          votes_miq: location === 'miquelon'     ? p.votes_miq + 1 : p.votes_miq,
+          votes_ext: location === 'exterieur'    ? p.votes_ext + 1 : p.votes_ext,
+          options: p.options.map((o) =>
+            o.id === optionId ? { ...o, votes_count: o.votes_count + 1 } : o
+          ),
+        }
+      }))
+    },
+    []
+  )
+
+  // Deep link au montage : si ?poll=<slug> dans l'URL, ouvrir le sondage correspondant
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get('poll')
+    if (!slug) return
+    const found = polls.find((p) => p.slug === slug)
+    if (found) {
+      setModalPollId(found.id)
+    } else {
+      console.warn(`VoxSPM: sondage "${slug}" introuvable dans la liste courante — deep link ignoré`)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Intentionnellement vide : exécuté une seule fois au montage
+
+  // Bouton back du navigateur : synchronise l'état modal avec l'URL
+  useEffect(() => {
+    function handlePopState() {
+      const slug = new URLSearchParams(window.location.search).get('poll')
+      if (slug) {
+        const found = polls.find((p) => p.slug === slug)
+        if (found) setModalPollId(found.id)
+        else console.warn(`VoxSPM: sondage "${slug}" introuvable après popstate`)
+      } else {
+        // Retour arrière → fermeture directe sans confirmation
+        setModalPollId(null)
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [polls])
+
   return (
-    <TagFilter
-      tags={tags}
-      activeTagSlugs={activeTagSlugs}
-      onToggle={handleToggle}
-    />
+    <>
+      <TagFilter
+        tags={tags}
+        activeTagSlugs={activeTagSlugs}
+        onToggle={handleToggle}
+      />
+
+      {polls.length === 0 ? (
+        <p
+          className="text-center py-16 text-sm"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Aucun sondage en cours — revenez bientôt !
+        </p>
+      ) : (
+        // 🎨 Intent: grille 3 cols desktop / 2 cols tablette / 1 col mobile, max-w-6xl
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 max-w-6xl mx-auto px-4">
+          {polls.map((poll) => (
+            <PollCardLive
+              key={poll.id}
+              id={poll.id}
+              slug={poll.slug}
+              question={poll.question}
+              description={poll.description}
+              total_votes={poll.total_votes}
+              proposed_at={poll.proposed_at}
+              proposer_name={poll.proposer_name}
+              tags={poll.tags}
+              options={poll.options}
+              votes_sp={poll.votes_sp}
+              votes_miq={poll.votes_miq}
+              votes_ext={poll.votes_ext}
+              onParticiper={openModal}
+            />
+          ))}
+        </div>
+      )}
+
+      {modalPoll && (
+        <PollModal
+          poll={modalPoll}
+          isOpen={true}
+          onClose={closeModal}
+          onVoteRegistered={handleVoteRegistered}
+        />
+      )}
+    </>
   )
 }
