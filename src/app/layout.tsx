@@ -3,10 +3,27 @@ import Providers from '@/components/layout/Providers'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'VoxSPM — La voix de l\'archipel',
-  description: 'Sondages citoyens pour Saint-Pierre-et-Miquelon',
+  metadataBase: new URL('https://voxspm.vercel.app'),
+  title: {
+    default: 'VoxSPM — Sondages citoyens de Saint-Pierre-et-Miquelon',
+    template: '%s — VoxSPM',
+  },
+  description: 'La plateforme de consultation publique citoyenne de l\'archipel. Proposez et votez sur les sujets qui concernent Saint-Pierre-et-Miquelon.',
   icons: {
     icon: '/icon.svg',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'VoxSPM',
+    locale: 'fr_FR',
+    title: 'VoxSPM — Sondages citoyens de Saint-Pierre-et-Miquelon',
+    description: 'La plateforme de consultation publique citoyenne de l\'archipel.',
+    url: 'https://voxspm.vercel.app',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'VoxSPM — Sondages citoyens',
+    description: 'La plateforme de consultation publique citoyenne de Saint-Pierre-et-Miquelon.',
   },
 }
 

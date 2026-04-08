@@ -13,12 +13,38 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { data: poll } = await supabase
     .from('polls')
-    .select('question')
+    .select('question, description')
     .eq('slug', slug)
     .single()
 
+  if (!poll) {
+    return {
+      title: 'Sondage introuvable — VoxSPM',
+    }
+  }
+
+  const title = poll.question.length > 70
+    ? poll.question.slice(0, 67) + '...'
+    : poll.question
+  const description = poll.description
+    ?? 'Participez à ce sondage citoyen sur VoxSPM, la plateforme de consultation publique de Saint-Pierre-et-Miquelon.'
+
   return {
-    title: poll ? `${poll.question} — VoxSPM` : 'Sondage — VoxSPM',
+    title: `${title} — VoxSPM`,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `https://voxspm.vercel.app/poll/${slug}`,
+      siteName: 'VoxSPM',
+      locale: 'fr_FR',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
   }
 }
 
