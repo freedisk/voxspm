@@ -73,7 +73,9 @@ voxspm/
 │   │   ├── hooks/
 │   │   │   ├── useVote.ts          # Vérifie vote existant (RLS)
 │   │   │   ├── useGeoLocation.ts   # Lit/écrit profiles.location (utilisé par useGeo)
-│   │   │   └── useRealtimeVotes.ts # Subscriptions Realtime (ref stable, pollId seul en dep)
+│   │   │   ├── useRealtimeVotes.ts # Subscriptions Realtime (ref stable, pollId seul en dep)
+│   │   │   ├── useLiveStats.ts     # Sync Hero stats en temps réel (votes, polls créés, actifs)
+│   │   │   └── useLivePolls.ts     # Sync liste home en temps réel (nouveaux polls, archivés, réordonnés)
 │   │   └── actions/
 │   │       ├── polls.ts            # vote (Server Action) — proposePoll/updateUserLocation stubées (client direct)
 │   │       └── admin.ts            # validate/archive/reactivate/delete/updatePoll/getPollWithOptions/updatePollOptions + CRUD tags
@@ -99,11 +101,10 @@ voxspm/
 
 ### Page `/` — Liste sondages
 - **Rendu** : SSR (données fraîches à chaque requête)
-- **Données** : `polls` WHERE status='active' + `poll_tags` + `tags` + `options` (sans votes individuels)
-- **Tri** : `proposed_at DESC` (plus récent en premier)
-- **Filtre** : par tag(s) via query param `?tag=transport`
-- **Composant principal** : `<TagFilter />` + liste de `<PollCard />`
-- **Realtime** : non (liste — le refresh manuel suffit pour MVP)
+- **Données** : `polls` WHERE status='active' + `poll_tags` + `tags` + `options` (sans votes individuels), jusqu'à 50 polls triés par `proposed_at DESC`
+- **Filtrage** : aucun filtre serveur — les 50 polls actifs sont retournés bruts, le filtrage par tags est géré côté client
+- **Composant principal** : `<HomeClient />` qui gère `<TagFilter />` + liste de `<PollCardLive />`
+- **Realtime** : oui — via `useLivePolls` pour apparition/disparition/réordonnement des polls
 
 ### Page `/poll/[slug]` — Détail sondage
 - **Rendu** : SSR + Client hydration pour Realtime
@@ -204,6 +205,14 @@ Structure verticale :
   6. Ligne bas : meta + badge Live animé + CTA "Participer →" → /poll/[slug]
 ```
 
+### `<PollCardLive />`
+```
+Props : slug, question, total_votes, proposed_at, proposer_name, tags, options, votes_sp, votes_miq, votes_ext, isNew?: boolean
+Composant Client avec Realtime + animations voxPulse
+Affiche un badge "✨ Nouveau" pulsant (#1A6FB5) si isNew=true
+Durée du badge : 5 secondes (gérée côté parent HomeClient via setTimeout)
+```
+
 ### `<VoteForm />`
 ```
 Affiché si : sondage actif ET user n'a pas encore voté sur ce sondage
@@ -245,6 +254,19 @@ Client Component, modale de bienvenue affichée à la première visite
 de la home. Tracking via localStorage (clé voxspm_welcome_seen).
 Rouvrable via custom event window 'voxspm:open-welcome'. Contenu :
 6 blocs d'explication du concept avec icônes Lucide.
+```
+
+### `<HomeClient />`
+```
+Client Component enveloppe de la home
+Responsabilités :
+  1. Lecture URL params via useSearchParams().getAll('tag') → activeTagSlugs
+  2. Utilise useLivePolls pour récupérer [livePolls, setPolls] (sync Realtime)
+  3. Filtre client : useMemo(filteredPolls) = livePolls.filter(poll => poll.tags.some(tag => activeTagSlugs.includes(tag.slug)))
+  4. Gestion du badge "✨ Nouveau" : Set<string> newPollIds, setTimeout 5s cleanup après insertion
+  5. Rendu : <TagFilter /> + liste <PollCardLive isNew={newPollIds.has(poll.id)} />
+  6. Router.replace lors du changement de tags (multi-select URL)
+  7. Écoute custom event 'voxspm:open-welcome' pour contrôle WelcomeModal
 ```
 
 ---
@@ -356,8 +378,8 @@ export const config = {
 
 ## 13. REALTIME — ABONNEMENTS
 
+### Channel `poll-${pollId}` (useRealtimeVotes)
 ```typescript
-// useRealtimeVotes.ts
 // S'abonner aux changements de votes_count sur les options d'un sondage
 supabase
   .channel(`poll-${pollId}`)
@@ -378,6 +400,26 @@ supabase
     // Mettre à jour votes_sp, votes_miq, votes_ext
   })
   .subscribe()
+```
+
+### Channel `hero-stats-live` (useLiveStats)
+```typescript
+// S'abonner aux changements des 3 compteurs Hero :
+// - total_votes (via INSERT votes)
+// - polls créés (via INSERT polls)
+// - polls actifs (via INSERT/UPDATE polls sur status='active')
+// Écoute : table votes (INSERT) + table polls (INSERT, UPDATE)
+// Utilise 2 Set<string> (activePollIdsRef, realizedPollIdsRef) pour éviter
+// la double-incrémentation causée par le trigger qui update polls à chaque vote
+```
+
+### Channel `home-polls-live` (useLivePolls)
+```typescript
+// S'abonner aux changements de la liste des polls de la home
+// Écoute : table polls (INSERT, UPDATE)
+// Détecte : nouveaux polls validés, polls archivés, changements de proposed_at (réordonnement)
+// Ignore les UPDATE parasites du trigger vote via Set<string> (knownIds) + comparaison proposed_at
+// Retourne [polls, setPolls] pour compatibilité avec update optimiste post-vote existant
 ```
 
 > Toujours unsubscribe dans le cleanup du useEffect.
