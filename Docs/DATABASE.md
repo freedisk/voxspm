@@ -32,10 +32,11 @@ CREATE TABLE public.polls (
   status          poll_status NOT NULL DEFAULT 'pending',
   proposer_name   text,                       -- pseudonyme libre, nullable
   proposed_by     uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  validated_by    uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   proposed_at     timestamptz NOT NULL DEFAULT now(),
+  validated_by    uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   validated_at    timestamptz,
   expires_at      timestamptz,               -- null = pas d'expiration auto
+  user_id         uuid NULL REFERENCES auth.users(id) ON DELETE SET NULL,  -- utilisateur proposant (session anonyme)
   total_votes     integer NOT NULL DEFAULT 0, -- dénormalisé via trigger
   votes_sp        integer NOT NULL DEFAULT 0, -- Saint-Pierre
   votes_miq       integer NOT NULL DEFAULT 0, -- Miquelon
@@ -160,6 +161,17 @@ CREATE TRIGGER before_poll_insert_slug
   FOR EACH ROW EXECUTE FUNCTION public.generate_poll_slug();
 ```
 
+### 4.2 Index
+
+```sql
+-- Index partiel sur (user_id, status) pour rate limiting
+CREATE INDEX polls_user_id_status_idx
+  ON public.polls (user_id, status)
+  WHERE user_id IS NOT NULL;
+-- Optimise les requêtes COUNT du rate limit (check des propositions pending par user).
+-- Plus léger qu'un index complet car les polls seed/legacy sont exclus.
+```
+
 ### 4.3 Seed — Tags initiaux SPM
 
 ```sql
@@ -174,6 +186,23 @@ INSERT INTO public.tags (name, slug, color, icon, order_index) VALUES
   ('Santé',         'sante',         '#1CA87A', '🏥', 8),
   ('Autre',         'autre',         '#4B5F7C', '📌', 9);
 ```
+
+### 4.4 Règles métier
+
+#### Rate limiting propositions
+Constante `MAX_PENDING_PROPOSALS = 3` définie dans `src/lib/constants.ts`.
+Un même `user_id` (session anonyme) ne peut pas avoir plus de 3 sondages
+en statut `'pending'` simultanément. Dès qu'un est validé (active) ou
+rejeté (supprimé), le compteur baisse. Check côté client (proactif)
+via `/api/propose/check-limit` et côté serveur (filet) dans `/api/propose`.
+
+### 4.5 Migrations
+
+Les migrations SQL sont versionnées dans `supabase/migrations/` à titre
+d'historique git. Elles sont appliquées manuellement via Supabase
+Studio SQL Editor, pas via `supabase db push`. Première migration
+versionnée : `20260408120000_add_user_id_to_polls.sql` (ajout `user_id`
+à polls + index partiel).
 
 ---
 

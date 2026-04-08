@@ -46,13 +46,14 @@ voxspm/
 │   │   │   ├── GeoBreakdown.tsx    # Répartition SP/Miq/Ext (compact + full)
 │   │   │   └── TagFilter.tsx       # Pills scrollables, multi-select URL
 │   │   ├── pages/                  # Wrappers client pour les pages SSR
-│   │   │   ├── HomeClient.tsx      # TagFilter interactif + router.replace
-│   │   │   └── PollDetailClient.tsx # Vote + Realtime + GeoModal
+│   │   │   ├── HomeClient.tsx      # TagFilter interactif + router.replace + WelcomeModal listener
+│   │   │   ├── PollDetailClient.tsx # Vote + Realtime + GeoModal
+│   │   │   └── WelcomeModal.tsx    # Modale bienvenue première visite, localStorage tracking
 │   │   ├── layout/
 │   │   │   ├── Header.tsx          # Glassmorphism, logo dégradé, pill géo (useGeo())
 │   │   │   ├── Hero.tsx            # Hero section avec stats, eyebrow, gradient
 │   │   │   ├── GeoModal.tsx        # 3 choix localisation, useGeo() → updateAndPersistLocation()
-│   │   │   ├── Footer.tsx          # Footer sombre #0A1628, liens, copyright
+│   │   │   ├── Footer.tsx          # 'use client' — Footer sombre #0A1628, liens, copyright, bouton "À propos" + lien /contact
 │   │   │   └── Providers.tsx       # SessionProvider + GeoProvider + GeoModal auto
 │   │   └── admin/
 │   │       ├── AdminShell.tsx      # Nav admin + déconnexion
@@ -126,6 +127,33 @@ voxspm/
 - **Validation** : Zod côté client + Server Action
 - **Submit** : Server Action `proposePoll()` → insert status='pending'
 - **Post-submit** : Message de confirmation "Merci ! Votre proposition sera examinée sous 48h."
+- **Rate limiting** : State checkState ('loading' | 'allowed' | 'blocked'), fonction checkLimit() réutilisable
+  appelée au montage et après chaque soumission réussie. Interception du code RATE_LIMIT_EXCEEDED (429)
+  pour bascule gracieuse sur bandeau bloquant. Fail-open sur erreur réseau (filet serveur reste actif).
+
+### Page `/contact` — Mentions légales
+- **Rendu** : Server Component statique
+- **Contenu** : Mentions légales minimales, charte de modération condensée, contact, hébergement, RGPD light
+- **Style** : Sobre Apple Civic Light
+- **Rôle** : Remplace les missions initiales P2.1 (À propos), P2.2 (Charte), P2.3 (Mentions légales)
+  et P2.4 (Contact) en une page unique
+
+### Routes API
+
+#### GET `/api/propose/check-limit`
+- **Route** : Next.js force-dynamic
+- **Renvoie** : `{ canPropose: boolean, pendingCount: number }`
+- **Logique** : Lit la session anonyme via `supabase.auth.getUser()` côté serveur (cookies). Compte les polls
+  WHERE `user_id = session.id AND status = 'pending'`. Fail-open si pas de session.
+- **Constante** : Utilise `MAX_PENDING_PROPOSALS = 3` de `src/lib/constants.ts`
+
+#### POST `/api/propose`
+- **Route** : Service role, bypass RLS
+- **Ajout** : Check rate limit avant INSERT (via getUser + count), renvoie 429 avec code `RATE_LIMIT_EXCEEDED`
+  si >= `MAX_PENDING_PROPOSALS`
+- **Persistance** : user_id à l'INSERT (`user?.id ?? null`)
+
+---
 
 ### Layout `/admin` — Dashboard admin
 - **Auth guard** : middleware Next.js vérifie session + profil role='admin'
@@ -210,6 +238,25 @@ Barre horizontale scrollable, sticky sous le header
 Filtre par URL param : ?tag=transport (pour partageabilité)
 Multi-select : ?tag=transport&tag=culture
 ```
+
+### `<WelcomeModal />`
+```
+Client Component, modale de bienvenue affichée à la première visite
+de la home. Tracking via localStorage (clé voxspm_welcome_seen).
+Rouvrable via custom event window 'voxspm:open-welcome'. Contenu :
+6 blocs d'explication du concept avec icônes Lucide.
+```
+
+---
+
+## 14. PATTERNS TRANSVERSES
+
+### Custom events cross-component
+Pattern utilisé pour ouvrir WelcomeModal depuis Footer sans Context
+Provider. Le Footer dispatch `window.dispatchEvent(new CustomEvent('voxspm:open-welcome'))`
+et HomeClient écoute via `window.addEventListener` dans un useEffect.
+Solution légère pour communication entre composants qui ne sont pas
+parents/enfants directs.
 
 ---
 

@@ -1,234 +1,221 @@
-[SESSION FRESH RECOMMANDÉE] · [MODÈLE: HAIKU SUFFIT] · [BUILD: OBLIGATOIRE]
+[SESSION FRESH RECOMMANDÉE] · [MODÈLE: HAIKU SUFFIT] · [BUILD: SKIP]
 
-*Mission P2.3-light : création d'une page /contact statique simple + ajout d'un lien dans le Footer. Aucune logique, juste du markup et du texte. Haiku largement suffisant. Session fresh car mission sans rapport avec P1.4. Build obligatoire (nouveau route Next.js).*
+*Mission documentation sync : mise à jour des fichiers docs/ et CLAUDE.md pour refléter l'état réel du code après les missions P1.4 (rate limit), WelcomeModal et /contact. Pur texte, aucun code métier touché. Haiku suffit. Build skip car zéro modif code.*
 
 CONTEXTE
 ========
-VoxSPM — création d'une page /contact qui sert à la fois de mentions
-légales minimales, de charte de modération condensée, et de point de
-contact pour les utilisateurs. Page statique, zéro logique, texte en dur.
-Style sobre type page légale, cohérent avec le design Apple Civic Light.
+VoxSPM — mise à jour documentaire du repo. Les fichiers docs/ ont pris
+du retard sur l'état réel du code depuis plusieurs missions. Cette session
+est exclusivement dédiée à la mise à jour de la doc. AUCUN fichier de code
+métier ne doit être modifié.
+
+Missions livrées mais non documentées :
+1. WelcomeModal "À propos" (composant client + branchement Footer + custom event)
+2. P1.4 Rate limiting (colonne user_id, route check-limit, bandeau bloquant)
+3. Page /contact (Server Component, mentions légales minimales)
+4. P1.3 expiration auto : REPOUSSÉ post-lancement (à documenter comme tel)
 
 FICHIERS AUTORISÉS
 ==================
-- src/app/contact/page.tsx           (CRÉER)
-- src/components/layout/Footer.tsx   (MODIFIER : ajouter lien "Contact")
+- CLAUDE.md                     (MODIFIER : mise à jour mineure)
+- docs/ARCHITECTURE.md          (MODIFIER : ajouts)
+- docs/DATABASE.md              (MODIFIER : ajout colonne user_id + index)
+- docs/ROADMAP.md               (MODIFIER : mise à jour statuts)
+
+Si un de ces fichiers n'existe pas dans le repo, signale-le dans le récap
+final et ne le crée PAS — on verra au cas par cas.
 
 FICHIERS INTERDITS
 ==================
-Tout le reste. En particulier :
-- src/lib/**
-- src/app/api/**
-- src/app/admin/**
-- src/app/proposer/**
-- src/components/pages/**
-- supabase/migrations/**
+TOUT le reste. En particulier :
+- src/**            (aucune modif de code, même d'un commentaire)
+- supabase/**       (aucune modif de migration)
+- public/**
+- package.json
 - middleware.ts
+- tout fichier de config
 
 COMMANDES INTERDITES
 ====================
 Ne JAMAIS lancer dans cette session :
-- npm run build           (JC le fait dans un terminal séparé)
+- npm run build           (inutile, zéro modif code)
 - git add / commit / push (JC gère les commits manuellement)
-- git status / git diff   (inutile dans le contexte de la session)
-- npm run dev             (déjà lancé en arrière-plan par JC)
+- git status / git diff
+- npm run dev             (inutile)
 
-Tu te contentes d'éditer les fichiers et de fournir un récap final
-listant tous les fichiers créés et modifiés.
+Tu te contentes d'éditer les fichiers docs et de fournir un récap final.
 
 ÉTAPES SÉQUENTIELLES
 ====================
 
-ÉTAPE 1 — Créer src/app/contact/page.tsx
+ÉTAPE 1 — Lire l'état actuel des fichiers docs
+-----------------------------------------------
+Commence par lire les 4 fichiers listés (CLAUDE.md, docs/ARCHITECTURE.md,
+docs/DATABASE.md, docs/ROADMAP.md) pour comprendre leur structure actuelle
+et leur ton éditorial. Tu dois RESPECTER la structure et le style existants,
+pas les réécrire.
+
+Si un fichier est introuvable, signale-le dans le récap final et continue
+avec les autres.
+
+ÉTAPE 2 — Mise à jour de docs/ARCHITECTURE.md
+----------------------------------------------
+Ajoute les informations suivantes dans les sections appropriées
+(si les sections n'existent pas, crée-les en respectant le style du
+fichier) :
+
+a) Section Composants (ou équivalente) :
+   - Ajouter WelcomeModal (src/components/pages/WelcomeModal.tsx) :
+     "Client Component, modale de bienvenue affichée à la première visite
+     de la home. Tracking via localStorage (clé voxspm_welcome_seen).
+     Rouvrable via custom event window 'voxspm:open-welcome'. Contenu :
+     6 blocs d'explication du concept avec icônes Lucide."
+
+b) Section Pages publiques (ou équivalente) :
+   - Ajouter /contact (src/app/contact/page.tsx) :
+     "Server Component statique. Mentions légales minimales, charte de
+     modération condensée, contact, hébergement, RGPD light. Style sobre
+     Apple Civic Light. Remplace les missions initiales P2.1 (À propos),
+     P2.2 (Charte), P2.3 (Mentions légales) et P2.4 (Contact) en une page
+     unique."
+   - Ajouter /proposer (mise à jour) :
+     "Client Component avec rate limiting proactif. State checkState
+     ('loading' | 'allowed' | 'blocked'), fonction checkLimit() réutilisable
+     appelée au montage et après chaque soumission réussie. Interception
+     du code RATE_LIMIT_EXCEEDED (429) pour bascule gracieuse sur bandeau
+     bloquant. Fail-open sur erreur réseau (filet serveur reste actif)."
+
+c) Section Routes API (ou équivalente) :
+   - Ajouter GET /api/propose/check-limit :
+     "Route Next.js force-dynamic. Renvoie { canPropose: boolean, pendingCount:
+     number }. Lit la session anonyme via supabase.auth.getUser() côté serveur
+     (cookies). Compte les polls WHERE user_id = session.id AND status = 'pending'.
+     Fail-open si pas de session. Utilise la constante MAX_PENDING_PROPOSALS = 3
+     de src/lib/constants.ts."
+   - Mettre à jour POST /api/propose :
+     "Ajout : check rate limit avant INSERT (via getUser + count), renvoie 429
+     avec code RATE_LIMIT_EXCEEDED si >= MAX_PENDING_PROPOSALS. Persiste
+     user_id à l'INSERT (user?.id ?? null)."
+
+d) Section Patterns transverses (ou équivalente, sinon la créer) :
+   - Ajouter "Custom events cross-component" :
+     "Pattern utilisé pour ouvrir WelcomeModal depuis Footer sans Context
+     Provider. Le Footer dispatch window.dispatchEvent(new CustomEvent('voxspm:open-welcome'))
+     et HomeClient écoute via window.addEventListener dans un useEffect.
+     Solution légère pour communication entre composants qui ne sont pas
+     parents/enfants directs."
+
+e) Section Composants layout (ou équivalente) :
+   - Footer est maintenant 'use client' (depuis WelcomeModal) pour supporter
+     les onClick. Ajout du lien vers /contact à côté du bouton "À propos".
+
+ÉTAPE 3 — Mise à jour de docs/DATABASE.md
+------------------------------------------
+a) Section Schéma de la table polls (ou équivalente) :
+   - Ajouter la colonne user_id :
+     "user_id uuid NULL REFERENCES auth.users(id) ON DELETE SET NULL.
+     Nullable pour préserver l'historique des polls seed/legacy qui n'ont
+     pas de proposant identifié. Persisté à l'INSERT via /api/propose pour
+     les nouvelles propositions anonymes. Jamais affiché publiquement,
+     sert uniquement au rate limiting et au tracking interne."
+
+b) Section Index (ou équivalente) :
+   - Ajouter l'index partiel :
+     "polls_user_id_status_idx : index partiel sur (user_id, status)
+     WHERE user_id IS NOT NULL. Optimise les requêtes COUNT du rate limit
+     (check des propositions pending par user). Plus léger qu'un index
+     complet car les polls seed/legacy sont exclus."
+
+c) Section Règles métier (ou équivalente, sinon la créer) :
+   - Ajouter "Rate limiting propositions" :
+     "Constante MAX_PENDING_PROPOSALS = 3 définie dans src/lib/constants.ts.
+     Un même user_id (session anonyme) ne peut pas avoir plus de 3 sondages
+     en statut 'pending' simultanément. Dès qu'un est validé (active) ou
+     rejeté (supprimé), le compteur baisse. Check côté client (proactif)
+     via /api/propose/check-limit et côté serveur (filet) dans /api/propose."
+
+d) Section Migrations (ou équivalente, sinon la créer) :
+   - Mentionner l'existence du dossier supabase/migrations/ créé lors de P1.4 :
+     "Les migrations SQL sont versionnées dans supabase/migrations/ à titre
+     d'historique git. Elles sont appliquées manuellement via Supabase
+     Studio SQL Editor, pas via supabase db push. Première migration
+     versionnée : 20260408120000_add_user_id_to_polls.sql (ajout user_id
+     à polls + index partiel)."
+
+ÉTAPE 4 — Mise à jour de docs/ROADMAP.md
 -----------------------------------------
-Server Component (pas besoin de 'use client', pas d'interactivité).
-Exporte un default function ContactPage().
+a) Marquer comme DONE ✅ :
+   - P1.1 (si pas déjà fait)
+   - P1.2 (si pas déjà fait)
+   - P1.4 Rate limiting propositions
 
-Contenu exact à inclure dans le JSX (texte en dur, aucune variable) :
+b) Ajouter en section "Livré hors roadmap initiale" (ou équivalente) :
+   - ✅ WelcomeModal "À propos" (modale + lien footer + custom event)
+   - ✅ Page /contact (mentions légales minimales, remplace P2.1/P2.2/P2.3/P2.4)
 
-Structure globale :
-- Container centré max-w-2xl mx-auto
-- Padding vertical généreux (py-16 sm:py-20)
-- Padding horizontal px-6
-- Background transparent (hérite du body)
+c) Mettre à jour le statut de P1.3 :
+   - Marquer P1.3 Expiration auto comme "⏸️ REPOUSSÉ post-lancement"
+   - Ajouter une note : "Décision prise en avril 2026 : pas d'utilisateurs réels
+     encore, impossible de calibrer la durée d'expiration par défaut. Sera
+     réévalué 2-3 mois après le lancement public si le besoin émerge
+     réellement. Alternative envisagée : expiration optionnelle (expires_at
+     nullable + champ admin optionnel), pas automatique."
 
-Exigences de style :
-- Titre principal en Instrument Serif, text-4xl sm:text-5xl, text-slate-900
-- Sous-titre intro en DM Sans italique, text-slate-600
-- Titres de section en DM Sans, text-lg font-semibold, text-slate-900, mt-10 mb-3
-- Corps de texte en DM Sans, text-[15px], text-slate-700, leading-relaxed
-- Email affiché comme lien mailto: avec color text-[#1A6FB5] hover:underline
-- Listes <ul> avec list-disc list-inside, text-slate-700, text-[15px]
-- Séparateurs subtils : <div className="h-px bg-slate-200 my-10" /> entre les grandes sections
+d) Marquer comme supprimées de la roadmap (fusionnées dans /contact) :
+   - ~~P2.1 Page À propos complète~~ → fusionnée dans /contact
+   - ~~P2.2 Charte de modération~~ → condensée dans /contact section Modération
+   - ~~P2.3 Mentions légales complètes~~ → remplacée par /contact minimaliste
+   - ~~P2.4 Formulaire de contact~~ → remplacé par mailto dans /contact
 
-Contenu textuel exact (respecte la ponctuation et les accents) :
+e) Missions restantes avant lancement :
+   - P2.5 Branchement domaine www.voxspm.com (prochaine mission)
+   - P2.6 Favicon pro + manifest PWA (bonus optionnel)
+   - LICENSE.md MIT à la racine du repo (30 secondes, hors roadmap)
 
-<main> avec le container ci-dessus, puis :
+ÉTAPE 5 — Mise à jour de CLAUDE.md (racine)
+--------------------------------------------
+a) Section "Fichiers protégés" (ou équivalente) :
+   - Ajouter src/lib/constants.ts à la liste des protégés
+   - Ajouter src/app/api/propose/check-limit/** à la liste
+   - Confirmer que src/app/api/propose/route.ts est déjà protégé (normalement oui)
 
-## Titre
-<h1 className="font-['Instrument_Serif'] text-4xl sm:text-5xl text-slate-900 leading-tight">
-  Contact & Informations
-</h1>
+b) Section "Décisions architecturales non révisables" (ou équivalente) :
+   - Ajouter : "Rate limiting propositions : max 3 pending par user_id.
+     Check côté serveur (429 + code RATE_LIMIT_EXCEEDED) ET côté client
+     (checkLimit proactif). user_id persisté à l'INSERT via user?.id ?? null."
+   - Ajouter : "WelcomeModal : tracking première visite via localStorage
+     (clé voxspm_welcome_seen). Communication cross-component via custom
+     event window 'voxspm:open-welcome'."
+   - Ajouter : "Page /contact : remplace définitivement les missions initiales
+     P2.1/P2.2/P2.3/P2.4. Ne pas recréer de pages séparées À propos /
+     Charte / Mentions légales / Formulaire contact."
 
-## Intro
-<p className="mt-3 text-slate-600 italic">
-  VoxSPM est un projet citoyen indépendant, bénévole et sans but lucratif,
-  dédié à Saint-Pierre-et-Miquelon et sa diaspora.
-</p>
+c) Section "État prod actuel" ou équivalente :
+   - Mettre à jour pour inclure : WelcomeModal, rate limit P1.4, /contact
+   - Si aucune section de ce type n'existe, ne la crée pas (CLAUDE.md est slim)
 
-## Séparateur
-<div className="h-px bg-slate-200 my-10" />
+d) Respecter la taille slim du CLAUDE.md : pas d'ajout massif, juste des
+   lignes ciblées. Si tu dois ajouter beaucoup, privilégie les docs/ et
+   laisse un pointeur dans CLAUDE.md.
 
-## Section Éditeur
-<h2>Éditeur du site</h2>
-<p>
-  Équipe VoxSPM. Projet personnel édité depuis Saint-Pierre-et-Miquelon,
-  à titre non commercial.
-</p>
-
-## Section Contact
-<h2>Contact</h2>
-<p>
-  Pour toute question, signalement ou demande, écrire à :
-</p>
-<p className="mt-2">
-  <a href="mailto:voxspm.contact@gmail.com" className="text-[#1A6FB5] hover:underline font-medium">
-    voxspm.contact@gmail.com
-  </a>
-</p>
-
-## Section Hébergement
-<h2>Hébergement technique</h2>
-<ul className="mt-2 space-y-1 list-disc list-inside">
-  <li>Application web : Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA</li>
-  <li>Base de données : Supabase Inc., 970 Toa Payoh North #07-04, Singapour</li>
-</ul>
-
-## Séparateur
-<div className="h-px bg-slate-200 my-10" />
-
-## Section Modération
-<h2>Modération des sondages</h2>
-<p>
-  Les propositions de sondages soumises par les utilisateurs sont examinées
-  avant publication dans un délai indicatif de 72 heures. Sont refusées les
-  propositions non constructives, diffamatoires, commerciales, ciblant
-  nominativement un individu, ou sans lien avec l'archipel et sa vie civique.
-</p>
-<p className="mt-3">
-  Chaque utilisateur peut soumettre jusqu'à 3 propositions en attente de
-  modération simultanément. Cette limite se libère à mesure que les propositions
-  sont validées ou refusées.
-</p>
-
-## Section Signalement
-<h2>Signalement d'un contenu</h2>
-<p>
-  Pour signaler un contenu problématique ou demander le retrait d'un sondage
-  publié, écrire à <a href="mailto:voxspm.contact@gmail.com" className="text-[#1A6FB5] hover:underline">voxspm.contact@gmail.com</a> en
-  précisant le sondage concerné et la raison du signalement. Chaque signalement
-  sera examiné avec attention dans les meilleurs délais.
-</p>
-
-## Séparateur
-<div className="h-px bg-slate-200 my-10" />
-
-## Section Données personnelles
-<h2>Données personnelles & confidentialité</h2>
-<p>
-  VoxSPM ne collecte aucune donnée permettant d'identifier directement ses
-  utilisateurs. Seules sont enregistrées :
-</p>
-<ul className="mt-3 space-y-1 list-disc list-inside">
-  <li>Un identifiant de session anonyme, généré techniquement</li>
-  <li>Une géolocalisation déclarée par l'utilisateur : Saint-Pierre, Miquelon ou Extérieur</li>
-  <li>Les votes enregistrés et les propositions de sondages soumises</li>
-  <li>Un pseudonyme optionnel, si le proposant choisit d'en fournir un</li>
-</ul>
-<p className="mt-4">
-  Aucun cookie publicitaire, aucun traceur tiers, aucune mesure d'audience
-  externe n'est utilisé. Seuls des cookies techniques strictement nécessaires
-  au fonctionnement du site (session anonyme) sont déposés, conformément à la
-  directive ePrivacy.
-</p>
-
-## Section Propriété intellectuelle
-<h2>Propriété intellectuelle</h2>
-<p>
-  Le code source de VoxSPM est publié en open source sur GitHub à l'adresse
-  <a href="https://github.com/freedisk/voxspm" target="_blank" rel="noopener noreferrer" className="text-[#1A6FB5] hover:underline"> github.com/freedisk/voxspm</a>.
-  Les contenus publiés (sondages, résultats) restent la propriété de leurs
-  auteurs respectifs.
-</p>
-
-## Section Droit applicable
-<h2>Droit applicable</h2>
-<p>
-  L'utilisation du site VoxSPM est régie par le droit français. En cas de
-  litige, et après tentative de résolution amiable par email, les tribunaux
-  compétents de Saint-Pierre-et-Miquelon seront seuls compétents.
-</p>
-
-## Footer de page
-<p className="mt-12 text-xs text-slate-500 italic text-center">
-  Dernière mise à jour : avril 2026
-</p>
-
-Notes importantes pour le JSX :
-- Tous les <h2> utilisent className="font-semibold text-lg text-slate-900 mt-10 mb-3"
-- Tous les <p> hors cas spéciaux utilisent className="text-[15px] text-slate-700 leading-relaxed"
-- Les listes <ul> utilisent className="mt-2 space-y-1 list-disc list-inside text-[15px] text-slate-700"
-- Respecte scrupuleusement les accents français (é, è, à, ù, ç, etc.)
-- Respecte les apostrophes typographiques courbes (') quand c'est possible, sinon droites (')
-- Pas d'emoji, pas d'icônes Lucide, la page est purement textuelle
-
-ÉTAPE 2 — Ajouter export const metadata
-----------------------------------------
-En haut de src/app/contact/page.tsx, ajoute les metadata Next.js :
-
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Contact & Informations — VoxSPM',
-  description: 'Contact, hébergement, modération, confidentialité et mentions légales de VoxSPM, le site de sondages citoyens de Saint-Pierre-et-Miquelon.',
-};
-
-ÉTAPE 3 — Modifier src/components/layout/Footer.tsx
-----------------------------------------------------
-a) Ajouter un lien "Contact" dans le Footer, avec le même style que les
-   autres liens existants du Footer (reprends EXACTEMENT les classes CSS
-   des liens déjà présents, ne réinvente pas le style).
-
-b) Le lien doit être un composant Next.js Link (import Link from 'next/link') :
-
-   <Link href="/contact" className="[classes identiques aux autres liens du footer]">
-     Contact
-   </Link>
-
-c) Positionner le lien à un endroit logique dans l'ordre existant :
-   suggestion d'ordre final : À propos · Contact · Proposer un sondage · Admin
-   (ou l'ordre qui correspond le mieux à ce qui est déjà en place).
-
-d) Si Footer.tsx était déjà passé en 'use client' (suite à la mission
-   WelcomeModal), tu peux importer Link normalement sans changement.
-   Si ce n'est pas le cas, garde-le comme il est (Link fonctionne en
-   Server Component aussi).
-
-e) NE modifie AUCUNE autre partie du Footer. Ajoute uniquement le lien
-   Contact au bon endroit.
+RÈGLES TRANSVERSES
+==================
+- Respecte TOUJOURS le style éditorial et la structure existante des fichiers.
+  Tu ajoutes/modifies, tu ne réécris pas.
+- Si une info existe déjà, ne la duplique pas.
+- Markdown propre : listes avec -, headers avec #, code inline avec backticks.
+- Pas de fioriture, pas de "Cette mise à jour...", pas de méta-commentaire
+  dans les docs. Tu écris comme si l'info avait toujours été là.
+- Aucune date à ajouter dans les docs sauf si le fichier en utilise déjà
+  (pas de "Ajouté en avril 2026" dans les docs d'architecture).
 
 RÉCAPITULATIF DEMANDÉ
 =====================
 En fin de session, fournis un récap court listant :
-- Le fichier créé (src/app/contact/page.tsx) avec confirmation qu'il est
-  bien un Server Component et que les metadata sont exportées
-- Le fichier modifié (Footer.tsx) avec la ligne exacte ajoutée pour le
-  lien Contact et sa position dans l'ordre des liens
-- Confirmation que toutes les sections du contenu (Éditeur, Contact,
-  Hébergement, Modération, Signalement, Données personnelles, Propriété
-  intellectuelle, Droit applicable) sont bien présentes
-- Toute incohérence rencontrée (ex: Footer.tsx avec une structure
-  inattendue, classes CSS différentes de ce qui est supposé, etc.)
+- Les 4 fichiers modifiés (CLAUDE.md + 3 docs/)
+- Pour chacun : les sections ajoutées ou mises à jour (liste de puces)
+- Tout fichier introuvable (ex: si docs/ROADMAP.md n'existe pas)
+- Toute incohérence rencontrée (ex: structure inattendue, section manquante,
+  contradiction entre docs existants)
 
-Pas de commentaires sur la qualité du texte légal, pas de suggestions
-d'amélioration, juste les faits.
+Pas de résumé verbeux, pas de commentaires sur la qualité.

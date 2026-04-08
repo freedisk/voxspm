@@ -160,8 +160,14 @@
     },
     {
       "path": "prompt.md",
-      "accessCount": 9,
-      "lastAccessed": 1775675330203,
+      "accessCount": 11,
+      "lastAccessed": 1775676166384,
+      "type": "file"
+    },
+    {
+      "path": "docs\\ARCHITECTURE.md",
+      "accessCount": 7,
+      "lastAccessed": 1775676278982,
       "type": "file"
     },
     {
@@ -183,9 +189,21 @@
       "type": "file"
     },
     {
+      "path": "docs\\DATABASE.md",
+      "accessCount": 5,
+      "lastAccessed": 1775676298687,
+      "type": "file"
+    },
+    {
       "path": "src\\components\\pages\\HomeClient.tsx",
       "accessCount": 4,
       "lastAccessed": 1775668380501,
+      "type": "file"
+    },
+    {
+      "path": "CLAUDE.md",
+      "accessCount": 4,
+      "lastAccessed": 1775676329725,
       "type": "file"
     },
     {
@@ -193,6 +211,12 @@
       "accessCount": 3,
       "lastAccessed": 1775669460651,
       "type": "directory"
+    },
+    {
+      "path": "docs\\ROADMAP.md",
+      "accessCount": 3,
+      "lastAccessed": 1775676315330,
+      "type": "file"
     },
     {
       "path": "src\\app\\poll\\[slug]\\page.tsx",

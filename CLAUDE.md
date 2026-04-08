@@ -66,13 +66,26 @@ src/lib/supabase/client.ts
 src/lib/supabase/server.ts
 src/lib/supabase/admin.ts
 src/lib/actions/admin.ts
+src/lib/constants.ts
 src/lib/context/GeoContext.tsx
 src/lib/context/SessionProvider.tsx
 src/app/admin/**
 src/app/api/**
+src/app/api/propose/check-limit/**
 supabase/migrations/**
 middleware.ts
 ```
+
+---
+
+## Décisions architecturales non révisables
+
+- **Rate limiting propositions** : max 3 pending par `user_id`. Check côté serveur (429 + code `RATE_LIMIT_EXCEEDED`)
+  ET côté client (checkLimit proactif). `user_id` persisté à l'INSERT via `user?.id ?? null`.
+- **WelcomeModal** : tracking première visite via localStorage (clé `voxspm_welcome_seen`). Communication
+  cross-component via custom event window `'voxspm:open-welcome'`.
+- **Page `/contact`** : remplace définitivement les missions initiales P2.1/P2.2/P2.3/P2.4. Ne pas recréer
+  de pages séparées À propos / Charte / Mentions légales / Formulaire contact.
 
 ---
 
