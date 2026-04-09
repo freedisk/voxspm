@@ -31,6 +31,7 @@ interface Poll {
 
 interface PollsTableProps {
   polls: Poll[]
+  newPollIds?: Set<string>
 }
 
 type StatusFilter = 'all' | 'active' | 'pending' | 'archived'
@@ -41,7 +42,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   archived: { label: 'Archivé', color: '#4B5F7C' },
 }
 
-export default function PollsTable({ polls }: PollsTableProps) {
+export default function PollsTable({ polls, newPollIds }: PollsTableProps) {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [search, setSearch] = useState('')
@@ -135,10 +136,24 @@ export default function PollsTable({ polls }: PollsTableProps) {
               })
               const acting = isActing === poll.id
 
+              const isNew = newPollIds?.has(poll.id) ?? false
+
               return (
-                <tr key={poll.id} className="border-b border-rock/10 hover:bg-surface-2/50">
+                <tr
+                  key={poll.id}
+                  className={`border-b border-rock/10 hover:bg-surface-2/50 transition-colors ${
+                    isNew ? 'bg-[#1A6FB5]/5 ring-1 ring-inset ring-[#1A6FB5]/30' : ''
+                  }`}
+                >
                   <td className="py-3 pr-4 max-w-[200px]">
-                    <p className="text-foreground truncate">{poll.question}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-foreground truncate">{poll.question}</p>
+                      {isNew && (
+                        <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1A6FB5]/15 text-[#1A6FB5] animate-pulse">
+                          ✨ Nouveau
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted mt-0.5">{poll.proposer_name ?? 'Anonyme'}</p>
                   </td>
                   <td className="py-3 pr-4 hidden sm:table-cell">

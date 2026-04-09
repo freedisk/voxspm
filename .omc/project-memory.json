@@ -154,8 +154,8 @@
   "hotPaths": [
     {
       "path": "prompt.md",
-      "accessCount": 17,
-      "lastAccessed": 1775692172302,
+      "accessCount": 18,
+      "lastAccessed": 1775742150032,
       "type": "file"
     },
     {
@@ -237,6 +237,12 @@
       "type": "file"
     },
     {
+      "path": "src\\components\\admin\\PollsTable.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1775742364078,
+      "type": "file"
+    },
+    {
       "path": "docs\\ROADMAP.md",
       "accessCount": 3,
       "lastAccessed": 1775676315330,
@@ -270,6 +276,18 @@
       "path": "src\\app\\contact\\page.tsx",
       "accessCount": 2,
       "lastAccessed": 1775675374519,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\hooks\\useLivePolls.ts",
+      "accessCount": 2,
+      "lastAccessed": 1775742158342,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775742336608,
       "type": "file"
     },
     {
@@ -327,15 +345,21 @@
       "type": "file"
     },
     {
-      "path": "src\\lib\\hooks\\useLivePolls.ts",
-      "accessCount": 1,
-      "lastAccessed": 1775691437585,
-      "type": "file"
-    },
-    {
       "path": "src\\components\\polls\\TagFilter.tsx",
       "accessCount": 1,
       "lastAccessed": 1775691765886,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\hooks\\useLiveAdminPolls.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775742317238,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\admin\\AdminDashboardClient.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775742325803,
       "type": "file"
     }
   ],
