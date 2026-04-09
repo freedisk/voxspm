@@ -128,6 +128,9 @@ CREATE TRIGGER on_vote_inserted
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_vote();
 
 -- ─── 3. Auto-générer slug depuis question ─────────────────────────────────
+-- Fixé en avril 2026 : appliquer lower() AVANT regexp_replace() pour éviter
+-- que les majuscules soient supprimées par la classe [^a-z0-9\s-].
+-- Voir migration 20260410120000_fix_poll_slug_generation.sql
 CREATE OR REPLACE FUNCTION public.generate_poll_slug()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -136,20 +139,46 @@ DECLARE
   counter integer := 0;
 BEGIN
   IF NEW.slug IS NULL THEN
-    base_slug := lower(regexp_replace(
-      translate(NEW.question,
-        'àáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝÞ',
-        'aaaaaaaceeeeiiiidnoooooouuuuytya aaaaaaaceeeeiiiidnoooooouuuuyt'
-      ),
-      '[^a-z0-9\s-]', '', 'g'
-    ));
-    base_slug := trim(regexp_replace(base_slug, '\s+', '-', 'g'));
+    -- 1. Minuscules AVANT tout
+    base_slug := lower(NEW.question);
+
+    -- 2. Retirer les accents via translate (chars minuscules uniquement)
+    base_slug := translate(
+      base_slug,
+      'àáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿ',
+      'aaaaaaaceeeeiiiidnooooouuuuyty'
+    );
+
+    -- 3. Supprimer tout ce qui n'est pas a-z, 0-9, espace ou tiret
+    base_slug := regexp_replace(base_slug, '[^a-z0-9\s-]', '', 'g');
+
+    -- 4. Normaliser espaces et tabs en tirets
+    base_slug := regexp_replace(base_slug, '\s+', '-', 'g');
+
+    -- 5. Dédoublonner les tirets consécutifs
+    base_slug := regexp_replace(base_slug, '-+', '-', 'g');
+
+    -- 6. Retirer les tirets en début et fin
+    base_slug := trim(both '-' from base_slug);
+
+    -- 7. Tronquer à 60 caractères
     base_slug := left(base_slug, 60);
+
+    -- 8. Retirer un éventuel tiret final après troncature
+    base_slug := trim(both '-' from base_slug);
+
+    -- 9. Fallback si slug vide
+    IF base_slug = '' OR base_slug IS NULL THEN
+      base_slug := 'sondage';
+    END IF;
+
+    -- 10. Garantir l'unicité via suffixe numérique
     final_slug := base_slug;
     WHILE EXISTS (SELECT 1 FROM public.polls WHERE slug = final_slug AND id != NEW.id) LOOP
       counter := counter + 1;
       final_slug := base_slug || '-' || counter;
     END LOOP;
+
     NEW.slug := final_slug;
   END IF;
   RETURN NEW;
@@ -200,9 +229,10 @@ via `/api/propose/check-limit` et côté serveur (filet) dans `/api/propose`.
 
 Les migrations SQL sont versionnées dans `supabase/migrations/` à titre
 d'historique git. Elles sont appliquées manuellement via Supabase
-Studio SQL Editor, pas via `supabase db push`. Première migration
-versionnée : `20260408120000_add_user_id_to_polls.sql` (ajout `user_id`
-à polls + index partiel).
+Studio SQL Editor, pas via `supabase db push`. Migrations versionnées :
+- `20260408120000_add_user_id_to_polls.sql` — ajout `user_id` à polls + index partiel
+- `20260408160000_cleanup_tags_duplicates.sql` — nettoyage doublons tags + contrainte unique CI sur `LOWER(name)`
+- `20260410120000_fix_poll_slug_generation.sql` — fix trigger `generate_poll_slug()` (majuscules préservées via `lower()` en amont du `regexp_replace`)
 
 ---
 
