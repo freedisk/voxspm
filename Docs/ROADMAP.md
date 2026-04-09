@@ -1,6 +1,10 @@
 # VoxSPM — Roadmap
 
 > Lu à la demande pour planification ou état d'avancement.
+>
+> **Statut projet : LIVE en production depuis avril 2026** · https://voxspm.com
+> Mode observation terrain post-lancement. La dette technique et le suivi feedback
+> utilisateurs sont trackés dans `CLAUDE.md` à la racine du repo, pas dans cette roadmap.
 
 ---
 
@@ -28,7 +32,7 @@
 - [x] P1.4 Rate limiting propositions (max 3 pending par user)
 - [ ] Admin : stats détaillées par sondage
 
-### P1.3 — Expiration auto
+### P1.5 — Expiration auto
 - ⏸️ **REPOUSSÉ post-lancement**
   Décision prise en avril 2026 : pas d'utilisateurs réels encore, impossible
   de calibrer la durée d'expiration par défaut. Sera réévalué 2-3 mois après
@@ -36,16 +40,31 @@
   expiration optionnelle (expires_at nullable + champ admin optionnel), pas
   automatique.
 
-### Livré hors roadmap initiale
+### Livré pré-lancement (hors roadmap initiale)
 - [x] **WelcomeModal "À propos"** — Modale + lien footer + custom event
 - [x] **Page `/contact`** — Mentions légales minimales, remplace P2.1/P2.2/P2.3/P2.4
+- [x] **Seed 8 sondages SPM réalistes** — données de lancement
+- [x] **OG tags SEO + images dynamiques** par sondage (satori/ImageResponse edge)
+- [x] **Deep link modale vote** `?poll=slug` + bottom sheet mobile
+- [x] **Update optimiste post-vote** (HomeClient owner du state polls)
+- [x] **useLiveStats** — 3 compteurs Hero live (votes/réalisés/actifs), channel `hero-stats-live`
+- [x] **useLivePolls** — sync liste home en temps réel, channel `home-polls-live`, badge "✨ Nouveau" 5s
+- [x] **Filtrage tags client-side** — `useSearchParams` + `useMemo`, réactif sans reload
+
+### Livré post-lancement (avril 2026)
+- [x] **useLiveAdminPolls** — sync dashboard admin en temps réel, channel `admin-polls-live`
+- [x] **AdminDashboardClient** — refactor `/admin/page.tsx` en server wrapper + client dashboard
+- [x] **Badge "✨ Nouveau" admin** — pulse 5s sur nouvelles propositions arrivant en live
+- [x] **Fix trigger PostgreSQL `generate_poll_slug()`** — `lower()` avant `regexp_replace()` pour préserver les majuscules (migration `20260410120000_fix_poll_slug_generation.sql`)
+- [x] **Fix slugify tags `TagsManager.tsx`** — normalization NFD canonique
+- [x] **Doc sync** — `ARCHITECTURE.md` + `DATABASE.md` + `ROADMAP.md` à jour
 
 ### P2 — V2 future (fusionnées / supprimées)
 - ~~P2.1 Page À propos complète~~ → fusionnée dans `/contact`
 - ~~P2.2 Charte de modération~~ → condensée dans `/contact` section Modération
 - ~~P2.3 Mentions légales complètes~~ → remplacée par `/contact` minimaliste
 - ~~P2.4 Formulaire de contact~~ → remplacé par mailto dans `/contact`
-- [ ] P2.5 Branchement domaine www.voxspm.com (prochaine mission)
+- [x] P2.5 Branchement domaine www.voxspm.com
 - [ ] P2.6 Favicon pro + manifest PWA (bonus optionnel)
 - [ ] LICENSE.md MIT à la racine du repo (30 secondes, hors roadmap)
 - [ ] Export CSV résultats

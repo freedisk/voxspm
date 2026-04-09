@@ -1,0 +1,189 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1775759731786,
+  "projectRoot": "C:\\Users\\Pc\\Downloads\\Claude Code - Website - VOXSPM\\voxspm",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "next",
+        "version": "16.2.2",
+        "category": "fullstack"
+      },
+      {
+        "name": "react",
+        "version": "19.2.4",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "19.2.4",
+        "category": "frontend"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": null,
+    "lintCommand": "npm run lint",
+    "devCommand": "npm run dev",
+    "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "start": "next start",
+      "lint": "eslint"
+    }
+  },
+  "conventions": {
+    "namingStyle": "camelCase",
+    "importStyle": "ES modules",
+    "testPattern": null,
+    "fileOrganization": "type-based"
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "public",
+      "src"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "Docs": {
+      "path": "Docs",
+      "purpose": "Documentation",
+      "fileCount": 4,
+      "lastAccessed": 1775759731627,
+      "keyFiles": [
+        "ARCHITECTURE.md",
+        "DATABASE.md",
+        "DESIGN_SYSTEM.md",
+        "ROADMAP.md"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 5,
+      "lastAccessed": 1775759731628,
+      "keyFiles": [
+        "file.svg",
+        "globe.svg",
+        "next.svg",
+        "vercel.svg",
+        "window.svg"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 1,
+      "lastAccessed": 1775759731638,
+      "keyFiles": [
+        "middleware.ts"
+      ]
+    },
+    "supabase": {
+      "path": "supabase",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1775759731639,
+      "keyFiles": [
+        "config.toml",
+        "seed.sql"
+      ]
+    },
+    "src\\app": {
+      "path": "src\\app",
+      "purpose": "Application code",
+      "fileCount": 7,
+      "lastAccessed": 1775759731645,
+      "keyFiles": [
+        "favicon.ico",
+        "globals.css",
+        "icon.svg"
+      ]
+    },
+    "src\\components": {
+      "path": "src\\components",
+      "purpose": "UI components",
+      "fileCount": 0,
+      "lastAccessed": 1775759731645,
+      "keyFiles": []
+    },
+    "src\\lib": {
+      "path": "src\\lib",
+      "purpose": "Library code",
+      "fileCount": 1,
+      "lastAccessed": 1775759731646,
+      "keyFiles": [
+        "constants.ts"
+      ]
+    },
+    "supabase\\migrations": {
+      "path": "supabase\\migrations",
+      "purpose": "Database migrations",
+      "fileCount": 7,
+      "lastAccessed": 1775759731646,
+      "keyFiles": [
+        "001_schema.sql",
+        "002_rls.sql",
+        "003_triggers.sql"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src\\app\\api\\admin\\export\\route.ts",
+      "accessCount": 5,
+      "lastAccessed": 1775760070333,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\admin\\StatsCards.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1775759892138,
+      "type": "file"
+    },
+    {
+      "path": "prompt.md",
+      "accessCount": 2,
+      "lastAccessed": 1775760049118,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\supabase\\admin.ts",
+      "accessCount": 1,
+      "lastAccessed": 1775759833515,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1775759840668,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

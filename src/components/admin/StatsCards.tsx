@@ -62,6 +62,15 @@ export default function StatsCards({
           variant="full"
         />
       </div>
+
+      {/* Export snapshot — téléchargement natif via Content-Disposition, pas de JS requis */}
+      <a
+        href="/api/admin/export"
+        download
+        className="self-start text-xs text-muted border border-rock/20 rounded-lg px-3 py-2 hover:bg-surface-1 transition-colors"
+      >
+        📥 Télécharger snapshot JSON
+      </a>
     </div>
   )
 }

@@ -1,0 +1,7 @@
+{
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"C:\\\\Users\\\\Pc\\\\Downloads\\\\Claude Code - Website - VOXSPM\\\\voxspm\\\\src\\\\app\\\\admin\\\\_components\\\\StatsCards.tsx\"}",
+  "error": "File does not exist. Note: your current working directory is C:\\Users\\Pc\\Downloads\\Claude Code - Website - VOXSPM\\voxspm.",
+  "timestamp": "2026-04-09T18:37:00.198Z",
+  "retry_count": 1
+}
