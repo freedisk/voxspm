@@ -154,14 +154,20 @@
   "hotPaths": [
     {
       "path": "prompt.md",
-      "accessCount": 16,
-      "lastAccessed": 1775691752770,
+      "accessCount": 17,
+      "lastAccessed": 1775692172302,
       "type": "file"
     },
     {
       "path": "src\\components\\pages\\HomeClient.tsx",
       "accessCount": 13,
       "lastAccessed": 1775691898616,
+      "type": "file"
+    },
+    {
+      "path": "docs\\ARCHITECTURE.md",
+      "accessCount": 13,
+      "lastAccessed": 1775692228992,
       "type": "file"
     },
     {
@@ -174,12 +180,6 @@
       "path": "src\\app\\page.tsx",
       "accessCount": 8,
       "lastAccessed": 1775691897561,
-      "type": "file"
-    },
-    {
-      "path": "docs\\ARCHITECTURE.md",
-      "accessCount": 7,
-      "lastAccessed": 1775676278982,
       "type": "file"
     },
     {
