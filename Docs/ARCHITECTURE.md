@@ -60,7 +60,8 @@ voxspm/
 │   │       ├── PollsTable.tsx      # Table filtrable + actions contextuelles
 │   │       ├── PollEditor.tsx      # Édition sondage — mode éditable vs lecture (isEditable)
 │   │       ├── StatsCards.tsx      # 4 métriques + GeoBreakdown global
-│   │       └── TagsManager.tsx     # CRUD inline + slug auto
+│   │       ├── TagsManager.tsx     # CRUD inline + slug auto
+│   │       └── AdminDashboardClient.tsx # Client wrapper dashboard — useLiveAdminPolls + useMemo stats
 │   ├── lib/
 │   │   ├── supabase/
 │   │   │   ├── client.ts           # createBrowserClient()
@@ -75,7 +76,8 @@ voxspm/
 │   │   │   ├── useGeoLocation.ts   # Lit/écrit profiles.location (utilisé par useGeo)
 │   │   │   ├── useRealtimeVotes.ts # Subscriptions Realtime (ref stable, pollId seul en dep)
 │   │   │   ├── useLiveStats.ts     # Sync Hero stats en temps réel (votes, polls créés, actifs)
-│   │   │   └── useLivePolls.ts     # Sync liste home en temps réel (nouveaux polls, archivés, réordonnés)
+│   │   │   ├── useLivePolls.ts     # Sync liste home en temps réel (nouveaux polls, archivés, réordonnés)
+│   │   │   └── useLiveAdminPolls.ts # Sync liste admin en temps réel (tous statuts, badge newPollIds 5s)
 │   │   └── actions/
 │   │       ├── polls.ts            # vote (Server Action) — proposePoll/updateUserLocation stubées (client direct)
 │   │       └── admin.ts            # validate/archive/reactivate/delete/updatePoll/getPollWithOptions/updatePollOptions + CRUD tags
@@ -161,10 +163,12 @@ voxspm/
 - **Redirect** si non-admin : `/`
 
 ### Page `/admin` — Dashboard principal
+- **Rendu** : Server Component wrapper minimal (fetch initial polls + tags) + `<AdminDashboardClient />` Client Component
+- **Server wrapper** : `src/app/admin/page.tsx` — fetch tous les polls (bypass filtre status=active via policy admin_all) + tags, passe en props à AdminDashboardClient. Ne calcule plus les stats.
+- **Client wrapper** : `src/components/admin/AdminDashboardClient.tsx` — appelle `useLiveAdminPolls(initialPolls)`, recalcule les stats via `useMemo` à chaque changement de polls, rend `<StatsCards />` + `<PollsTable polls={polls} newPollIds={newPollIds} />`
+- **Realtime** : via `useLiveAdminPolls` sur channel `admin-polls-live`. Les nouveaux pending apparaissent instantanément avec un badge "✨ Nouveau" pulsant 5 secondes sur la row concernée. Les compteurs (actifs / pending / archivés / votes total / répartition géo) se mettent à jour live.
 - Stats globales (actifs / pending / archivés / votes total / répartition géo globale)
-- Table paginée de tous les sondages (50 par page)
-- Filtres : tous / actifs / pending / archivés
-- Recherche : par texte de question
+- Table de tous les sondages triée par `proposed_at DESC`
 - Actions par ligne : Valider · Éditer · Archiver · Supprimer
 
 ### Page `/admin/polls/[id]` — Édition sondage
@@ -420,6 +424,20 @@ supabase
 // Détecte : nouveaux polls validés, polls archivés, changements de proposed_at (réordonnement)
 // Ignore les UPDATE parasites du trigger vote via Set<string> (knownIds) + comparaison proposed_at
 // Retourne [polls, setPolls] pour compatibilité avec update optimiste post-vote existant
+```
+
+### Channel `admin-polls-live` (useLiveAdminPolls)
+```typescript
+// S'abonner aux changements de TOUS les polls (tous statuts confondus) pour le dashboard admin
+// Écoute : table polls (INSERT, UPDATE, DELETE) — aucun filtre status
+// Sur INSERT : refetch complet du poll avec jointure tags, ajout en tête de liste,
+//   ajout de l'ID au Set<string> newPollIds, cleanup via setTimeout 5s
+// Sur UPDATE : merge des colonnes modifiées. Si status ou proposed_at change,
+//   refetch complet avec tags. Les UPDATE parasites du trigger vote (votes_sp/miq/ext)
+//   sont mergés sans refetch et n'ajoutent JAMAIS au Set newPollIds
+// Sur DELETE : retrait de la liste
+// Retourne : { polls, newPollIds } utilisé par AdminDashboardClient pour recalculer
+//   les stats via useMemo et alimenter le badge "✨ Nouveau" de PollsTable
 ```
 
 > Toujours unsubscribe dans le cleanup du useEffect.
