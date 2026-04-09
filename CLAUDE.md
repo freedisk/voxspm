@@ -110,5 +110,44 @@ middleware.ts
 | `docs/ROADMAP.md` | Priorités MVP (P0/P1/P2) |
 
 ---
+---
 
-*VoxSPM · claude.md v2.0 slim · Avril 2026*
+## 🛠️ Dette technique
+
+Items hors roadmap produit, à traiter opportunément entre deux missions.
+
+- [ ] **Rename `middleware.ts` → `proxy.ts`** — deprecated en Next 16, deviendra une erreur en Next 17. Mission courte (rename + éventuel ajustement d'import dans la config Next).
+- [ ] **Lockfile parasite dans `C:\Users\Pc\`** — un `package-lock.json` ou équivalent traîne à la racine du user Windows et déclenche un warning Turbopack au démarrage. À supprimer manuellement.
+- [ ] **P1.5 Expiration auto sondages** — repoussé post-lancement. À réévaluer 2-3 mois après le lancement si le besoin émerge réellement. Alternative envisagée : champ `expires_at` optionnel côté admin, pas de cron automatique.
+- [ ] **P2.6 Favicon pro + manifest PWA** — bonus optionnel, améliore l'expérience mobile et le partage.
+- [ ] **LICENSE.md MIT à la racine** — 30 secondes, hygiène open source.
+- [ ] **Admin : stats détaillées par sondage** — P1 résiduel, utile si un sondage polémique demande un debrief fin (cf. cas Jeune France).
+
+---
+
+## 📡 Feedback terrain post-lancement
+
+Mode observation actif depuis le lancement (avril 2026). Les retours utilisateurs et polémiques sont trackés ici jusqu'à ce qu'ils soient traités ou classés.
+
+### Incidents résolus
+
+- **Polémique Maïté Légasse — sondage Jeune France (J0)**
+  Première polémique publique Facebook sur la formulation d'un sondage concernant le remplacement du bâtiment Jeune France. Résolue en publiant en parallèle un **second sondage miroir neutre** plutôt qu'en modifiant le premier (préservation de l'intégrité des votes déjà exprimés). Leçon retenue : toujours prévoir un sondage miroir neutre quand la formulation initiale est contestée, ne jamais éditer un sondage qui a déjà des votes (cf. règle `isEditable = total_votes === 0 && status !== 'archived'`).
+
+### Points de vigilance en cours
+
+- Surveillance du ratio propositions acceptées / rejetées pour ajuster la **charte de modération** si besoin.
+- Surveillance des formulations polémiques à l'arrivée (propositions utilisateurs) — le modérateur doit garder en tête la possibilité de reformuler neutre avant validation plutôt que rejeter sec.
+- Surveillance de l'usage du rate limit (`MAX_PENDING_PROPOSALS = 3`) : si beaucoup de users le heurtent, envisager d'augmenter ou d'ajuster.
+
+### Métriques J+1 (pour mémoire)
+
+- 231+ votes cumulés
+- 11 sondages actifs
+- 8 propositions utilisateurs validées
+- 3 channels Realtime publics + 1 channel Realtime admin opérationnels
+
+---
+
+*VoxSPM · claude.md v2.3 slim · Avril 2026*
+post lancement + dette trackée
