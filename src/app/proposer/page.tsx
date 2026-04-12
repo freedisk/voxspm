@@ -6,6 +6,7 @@ import { Clock } from 'lucide-react'
 import { z } from 'zod'
 import Button from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
+import { MAX_OPTIONS } from '@/lib/constants'
 
 interface Tag {
   id: string
@@ -232,6 +233,29 @@ export default function ProposerPage() {
           boxShadow: 'var(--shadow-md)',
         }}
       >
+        {/* 🎨 Intent: encart d'aide pour propositions recevables */}
+        <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          <p className="mb-2 font-semibold text-slate-900">
+            Quelques règles pour une proposition recevable
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              Formulez la question de manière <strong>neutre</strong>, sans orienter
+              la réponse.
+            </li>
+            <li>
+              Proposez des options <strong>symétriques</strong> : idéalement deux
+              arguments « pour » et deux arguments « contre », sans caricature d'un camp.
+            </li>
+            <li>
+              Maximum <strong>{MAX_OPTIONS} options</strong> de réponse, « Sans opinion » compris.
+            </li>
+            <li>
+              Les propositions biaisées ou hors-sujet seront refusées par la modération.
+            </li>
+          </ul>
+        </div>
+
         {/* Question */}
         <div className="flex flex-col gap-2">
           <label

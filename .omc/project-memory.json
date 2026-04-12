@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1775759731786,
+  "lastScanned": 1776015598188,
   "projectRoot": "C:\\Users\\Pc\\Downloads\\Claude Code - Website - VOXSPM\\voxspm",
   "techStack": {
     "languages": [
@@ -74,7 +74,7 @@
       "path": "Docs",
       "purpose": "Documentation",
       "fileCount": 4,
-      "lastAccessed": 1775759731627,
+      "lastAccessed": 1776015598135,
       "keyFiles": [
         "ARCHITECTURE.md",
         "DATABASE.md",
@@ -86,7 +86,7 @@
       "path": "public",
       "purpose": "Public files",
       "fileCount": 5,
-      "lastAccessed": 1775759731628,
+      "lastAccessed": 1776015598136,
       "keyFiles": [
         "file.svg",
         "globe.svg",
@@ -99,7 +99,7 @@
       "path": "src",
       "purpose": "Source code",
       "fileCount": 1,
-      "lastAccessed": 1775759731638,
+      "lastAccessed": 1776015598153,
       "keyFiles": [
         "middleware.ts"
       ]
@@ -108,7 +108,7 @@
       "path": "supabase",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1775759731639,
+      "lastAccessed": 1776015598155,
       "keyFiles": [
         "config.toml",
         "seed.sql"
@@ -118,7 +118,7 @@
       "path": "src\\app",
       "purpose": "Application code",
       "fileCount": 7,
-      "lastAccessed": 1775759731645,
+      "lastAccessed": 1776015598156,
       "keyFiles": [
         "favicon.ico",
         "globals.css",
@@ -129,14 +129,14 @@
       "path": "src\\components",
       "purpose": "UI components",
       "fileCount": 0,
-      "lastAccessed": 1775759731645,
+      "lastAccessed": 1776015598156,
       "keyFiles": []
     },
     "src\\lib": {
       "path": "src\\lib",
       "purpose": "Library code",
       "fileCount": 1,
-      "lastAccessed": 1775759731646,
+      "lastAccessed": 1776015598157,
       "keyFiles": [
         "constants.ts"
       ]
@@ -145,7 +145,7 @@
       "path": "supabase\\migrations",
       "purpose": "Database migrations",
       "fileCount": 7,
-      "lastAccessed": 1775759731646,
+      "lastAccessed": 1776015598158,
       "keyFiles": [
         "001_schema.sql",
         "002_rls.sql",
@@ -155,34 +155,28 @@
   },
   "hotPaths": [
     {
-      "path": "src\\app\\api\\admin\\export\\route.ts",
-      "accessCount": 5,
-      "lastAccessed": 1775760070333,
+      "path": "src\\app\\proposer\\page.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776015772511,
       "type": "file"
     },
     {
-      "path": "src\\components\\admin\\StatsCards.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1775759892138,
+      "path": "src\\lib\\constants.ts",
+      "accessCount": 3,
+      "lastAccessed": 1776015905640,
       "type": "file"
     },
     {
       "path": "prompt.md",
       "accessCount": 2,
-      "lastAccessed": 1775760049118,
+      "lastAccessed": 1776015893551,
       "type": "file"
     },
     {
-      "path": "src\\lib\\supabase\\admin.ts",
+      "path": "",
       "accessCount": 1,
-      "lastAccessed": 1775759833515,
-      "type": "file"
-    },
-    {
-      "path": "src\\app\\admin\\page.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1775759840668,
-      "type": "file"
+      "lastAccessed": 1776015739083,
+      "type": "directory"
     }
   ],
   "userDirectives": []
