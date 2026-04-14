@@ -149,5 +149,22 @@ Mode observation actif depuis le lancement (avril 2026). Les retours utilisateur
 
 ---
 
+## Pre-commit hook (barrière mécanique denylist)
+
+Le repo embarque un hook `.githooks/pre-commit` qui bloque tout commit 
+touchant aux fichiers protégés listés plus haut. 
+
+**Activation** (une fois par clone) :
+```
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
+
+**Bypass intentionnel** : `git commit --no-verify`
+
+Voir `.githooks/README.md` pour le détail.
+
+---
+
 *VoxSPM · claude.md v2.3 slim · Avril 2026*
 post lancement + dette trackée

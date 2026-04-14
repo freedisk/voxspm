@@ -1,0 +1,59 @@
+#!/bin/bash
+# VoxSPM — Pre-commit hook de protection des fichiers sensibles
+# Bloque tout commit qui toucherait aux fichiers critiques (auth, RLS,
+# constantes métier, routes admin/API, migrations, middleware).
+# Bypass intentionnel possible avec : git commit --no-verify
+
+set -e
+
+# Liste des motifs regex (POSIX) à protéger
+PROTECTED_PATTERNS=(
+  "^src/lib/hooks/"
+  "^src/lib/supabase/(client|server|admin)\.ts"
+  "^src/lib/actions/admin\.ts"
+  "^src/lib/context/GeoContext\.tsx"
+  "^src/lib/context/SessionProvider\.tsx"
+  "^src/lib/constants\.ts"
+  "^src/lib/og/"
+  "^src/app/admin/"
+  "^src/app/api/"
+  "^supabase/migrations/"
+  "^middleware\.ts"
+)
+
+# Fichiers en staging pour ce commit
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# Rien à vérifier si aucun fichier en staging
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+VIOLATIONS=()
+
+while IFS= read -r file; do
+  for pattern in "${PROTECTED_PATTERNS[@]}"; do
+    if echo "$file" | grep -qE "$pattern"; then
+      VIOLATIONS+=("$file")
+      break
+    fi
+  done
+done <<< "$STAGED_FILES"
+
+if [ ${#VIOLATIONS[@]} -gt 0 ]; then
+  echo ""
+  echo "⛔  COMMIT BLOQUÉ — fichiers protégés détectés dans le staging :"
+  echo ""
+  printf "   • %s\n" "${VIOLATIONS[@]}"
+  echo ""
+  echo "Ces fichiers relèvent de la denylist VoxSPM (auth, RLS, constantes,"
+  echo "admin, API, migrations, middleware). Toute modification doit être"
+  echo "intentionnelle et reviewée manuellement."
+  echo ""
+  echo "Pour bypasser volontairement ce hook :"
+  echo "    git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+exit 0
